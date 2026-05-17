@@ -618,8 +618,8 @@ select.filter-select-input {
 const STORE_KEY = 'homeHub_v1';
 let state = {
   currentUser: null,
-  claudeApiKey: '',
-  claudeModel: 'claude-haiku-4-5-20251001',
+  geminiApiKey: '',
+  geminiModel: 'gemini-1.5-flash',
   reminders: [],
   todos: [],
   groceryItems: [],
@@ -1389,10 +1389,10 @@ function showRecipeInputModal() {
               </div>`
             }
           </div>
-          ${!state.claudeApiKey ? `<div style="background:#FEF3C7;border-radius:9px;padding:10px 14px;font-size:0.83rem;color:#92400E;margin-bottom:12px">⚠️ No Claude API key set. <button style="background:none;border:none;cursor:pointer;color:#92400E;font-weight:700;text-decoration:underline" onclick="closeModal();openSettings()">Set it in Settings</button></div>` : ''}
+          ${!state.geminiApiKey ? `<div style="background:#FEF3C7;border-radius:9px;padding:10px 14px;font-size:0.83rem;color:#92400E;margin-bottom:12px">⚠️ No Gemini API key set. <button style="background:none;border:none;cursor:pointer;color:#92400E;font-weight:700;text-decoration:underline" onclick="closeModal();openSettings()">Set it in Settings</button></div>` : ''}
           <div class="form-actions">
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-            <button class="btn-primary" onclick="submitRecipeToClyde()" ${!state.claudeApiKey?'disabled title="Set API key in Settings first"':''}>Extract with Claude</button>
+            <button class="btn-primary" onclick="submitRecipeToClyde()" ${!state.geminiApiKey?'disabled title="Set API key in Settings first"':''}>Extract with Gemini</button>
           </div>
         </div>
       </div>
@@ -1407,7 +1407,7 @@ async function submitRecipeToClyde() {
   const inputEl = document.getElementById(isUrl ? 'recipe-url' : 'recipe-text');
   const input = inputEl ? inputEl.value.trim() : '';
   if (!input) { alert(isUrl ? 'Please enter a URL' : 'Please paste recipe text'); return; }
-  if (!state.claudeApiKey) { alert('Please set your Claude API key in Settings'); return; }
+  if (!state.geminiApiKey) { alert('Please set your Gemini API key in Settings'); return; }
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop">
       <div class="modal">
@@ -1415,7 +1415,7 @@ async function submitRecipeToClyde() {
         <div class="modal-body">
           <div class="loading-box">
             <div class="spinner"></div>
-            <p>Claude is analyzing the recipe...</p>
+            <p>${isUrl ? 'Fetching page, then a' : 'A'}nalyzing recipe with Gemini...</p>
           </div>
         </div>
       </div>
@@ -1423,21 +1423,21 @@ async function submitRecipeToClyde() {
   const systemPrompt = `You are a recipe extraction assistant. Extract the recipe from the provided content and return ONLY a valid JSON object with NO markdown code blocks, NO extra text. Use exactly this structure:
 {"title":"Recipe name","servings":4,"ingredients":["1 cup flour","2 eggs"],"procedure":["Step 1: ...","Step 2: ..."],"macrosPerServing":{"calories":350,"protein":25,"carbs":40,"fat":12,"fiber":5,"netCarbs":35},"macrosTotal":{"calories":1400,"protein":100,"carbs":160,"fat":48,"fiber":20,"netCarbs":140},"tags":{"keto":false,"vegan":false,"highProtein":false,"vegetarian":false,"glutenFree":false,"dairyFree":false,"lowCalorie":false,"lowHistamine":false,"antiInflammatory":false},"notes":""}
 Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=protein_grams>0.10*calories; vegetarian=no meat/fish but eggs/dairy ok; glutenFree=no wheat/barley/rye; dairyFree=no dairy; lowCalorie=<400kcal/serving; lowHistamine=no aged cheeses/fermented/pickled/cured meats/shellfish/alcohol/vinegar; antiInflammatory=rich in omega-3s/berries/leafy greens/olive oil/turmeric/ginger.`;
-  const userMsg = isUrl ? `Extract this recipe from the URL: ${input}` : `Extract this recipe from the following text:\n\n${input}`;
+  let recipeContent = input;
+  if (isUrl) {
+    const jinaResp = await fetch(`https://r.jina.ai/${input}`, { headers: { 'Accept': 'text/plain' } });
+    if (!jinaResp.ok) throw new Error('Could not fetch the URL. Try pasting the recipe text instead.');
+    recipeContent = await jinaResp.text();
+  }
+  const fullPrompt = `${systemPrompt}\n\nRecipe content:\n${recipeContent}`;
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const model = state.geminiModel || 'gemini-1.5-flash';
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.geminiApiKey}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.claudeApiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: state.claudeModel || 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
+        contents: [{ parts: [{ text: fullPrompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
       })
     });
     if (!resp.ok) {
@@ -1445,13 +1445,13 @@ Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=prot
       throw new Error(errData.error?.message || `API error ${resp.status}`);
     }
     const data = await resp.json();
-    const text = data.content?.[0]?.text || '';
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let parsed;
     try {
       const cleaned = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
       parsed = JSON.parse(cleaned);
     } catch(e) {
-      throw new Error('Claude returned invalid JSON. Try again.');
+      throw new Error('Gemini returned invalid JSON. Try again or paste the recipe text directly.');
     }
     pendingRecipe = parsed;
     pendingRecipe.id = pendingRecipe.id || uid();
@@ -1590,18 +1590,18 @@ function openSettings() {
             </div>
           </div>
           <div class="form-group">
-            <label>Claude API Key</label>
+            <label>Gemini API Key <span style="font-weight:400;font-size:0.8rem;color:var(--text-muted)">— free at aistudio.google.com</span></label>
             <div class="input-with-toggle">
-              <input type="password" id="api-key-input" value="${escapeHtml(state.claudeApiKey)}" placeholder="sk-ant-...">
+              <input type="password" id="api-key-input" value="${escapeHtml(state.geminiApiKey)}" placeholder="AIza...">
               <button class="show-hide-btn" onclick="toggleApiKeyVisibility()">👁</button>
             </div>
           </div>
           <div class="form-group">
-            <label>Claude Model</label>
+            <label>Gemini Model</label>
             <select id="model-select">
-              <option value="claude-haiku-4-5-20251001" ${state.claudeModel==='claude-haiku-4-5-20251001'?'selected':''}>claude-haiku-4-5-20251001 (Default)</option>
-              <option value="claude-sonnet-4-5-20251101" ${state.claudeModel==='claude-sonnet-4-5-20251101'?'selected':''}>claude-sonnet-4-5-20251101</option>
-              <option value="claude-opus-4-5-20251101" ${state.claudeModel==='claude-opus-4-5-20251101'?'selected':''}>claude-opus-4-5-20251101</option>
+              <option value="gemini-1.5-flash" ${state.geminiModel==='gemini-1.5-flash'?'selected':''}>gemini-1.5-flash (Free — Recommended)</option>
+              <option value="gemini-1.5-pro" ${state.geminiModel==='gemini-1.5-pro'?'selected':''}>gemini-1.5-pro (Paid — More accurate)</option>
+              <option value="gemini-2.0-flash" ${state.geminiModel==='gemini-2.0-flash'?'selected':''}>gemini-2.0-flash (Free — Fastest)</option>
             </select>
           </div>
           <div class="form-actions">
@@ -1619,8 +1619,8 @@ function toggleApiKeyVisibility() {
 function saveSettings() {
   const k = document.getElementById('api-key-input');
   const m = document.getElementById('model-select');
-  if (k) state.claudeApiKey = k.value.trim();
-  if (m) state.claudeModel = m.value;
+  if (k) state.geminiApiKey = k.value.trim();
+  if (m) state.geminiModel = m.value || 'gemini-1.5-flash';
   saveState();
   closeModal();
   render();
