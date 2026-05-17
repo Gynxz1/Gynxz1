@@ -797,13 +797,21 @@ async function deleteRemoteItem(id) {
 }
 
 async function testSyncConnection(url, key) {
+  // Returns { ok, message }
   try {
-    const resp = await fetch(url + '/rest/v1/hh_items?select=id&limit=1', {
+    // First check credentials work at all
+    const authResp = await fetch(url + '/rest/v1/', {
       headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
     });
-    return resp.ok;
+    if (!authResp.ok) return { ok: false, message: 'Invalid URL or API key (HTTP ' + authResp.status + ')' };
+    // Then check the table exists
+    const tableResp = await fetch(url + '/rest/v1/hh_items?select=id&limit=1', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    if (!tableResp.ok) return { ok: false, message: 'Connected but table not found — run the SQL setup first' };
+    return { ok: true, message: 'Connected! Save settings to start syncing.' };
   } catch(e) {
-    return false;
+    return { ok: false, message: 'Network error — check your internet connection' };
   }
 }
 
@@ -1886,9 +1894,9 @@ document.getElementById('test-sync-btn').addEventListener('click', async functio
   const el = document.getElementById('sync-test-result');
   if (!url || !key) { el.textContent = '⚠️ Enter URL and key first'; el.style.color = 'var(--yellow)'; return; }
   el.textContent = 'Testing...'; el.style.color = 'var(--text-muted)';
-  const ok = await testSyncConnection(url, key);
-  el.textContent = ok ? '✓ Connected! Save settings to start syncing.' : '✗ Connection failed. Check URL and key.';
-  el.style.color = ok ? '#22C55E' : '#EF4444';
+  const result = await testSyncConnection(url, key);
+  el.textContent = (result.ok ? '✓ ' : '✗ ') + result.message;
+  el.style.color = result.ok ? '#22C55E' : '#EF4444';
 });
 // Also keep the header settings button wired both ways:
 const settingsBtn = document.querySelector('.settings-btn');
