@@ -1827,7 +1827,7 @@ function saveSettings() {
   const sk = document.getElementById('sync-key-input');
   if (k) state.geminiApiKey = k.value.trim();
   if (m) state.geminiModel = m.value || 'gemini-1.5-flash';
-  if (su) state.supabaseUrl = su.value.trim().replace(/\/$/, '');
+  if (su) state.supabaseUrl = su.value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   if (sk) state.supabaseKey = sk.value.trim();
   saveLocalState();
   closeSettings();
@@ -1889,7 +1889,7 @@ document.getElementById('show-hide-sync-btn').addEventListener('click', function
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
 });
 document.getElementById('test-sync-btn').addEventListener('click', async function() {
-  const url = (document.getElementById('sync-url-input').value || '').trim().replace(/\/$/, '');
+  const url = (document.getElementById('sync-url-input').value || '').trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   const key = (document.getElementById('sync-key-input').value || '').trim();
   const el = document.getElementById('sync-test-result');
   if (!url || !key) { el.textContent = '⚠️ Enter URL and key first'; el.style.color = 'var(--yellow)'; return; }
