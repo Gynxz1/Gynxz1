@@ -1382,7 +1382,7 @@ function showRecipeInputModal() {
                 <label>Recipe URL</label>
                 <input type="url" id="recipe-url" placeholder="https://...">
               </div>
-              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:-8px;margin-bottom:12px">Claude will fetch and parse this recipe URL.</p>` :
+              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:-8px;margin-bottom:12px">Gemini will fetch and analyze this recipe URL automatically.</p>` :
               `<div class="form-group">
                 <label>Paste Recipe Text</label>
                 <textarea id="recipe-text" style="min-height:160px" placeholder="Paste the recipe content here..."></textarea>
@@ -1424,10 +1424,27 @@ async function submitRecipeToClyde() {
 {"title":"Recipe name","servings":4,"ingredients":["1 cup flour","2 eggs"],"procedure":["Step 1: ...","Step 2: ..."],"macrosPerServing":{"calories":350,"protein":25,"carbs":40,"fat":12,"fiber":5,"netCarbs":35},"macrosTotal":{"calories":1400,"protein":100,"carbs":160,"fat":48,"fiber":20,"netCarbs":140},"tags":{"keto":false,"vegan":false,"highProtein":false,"vegetarian":false,"glutenFree":false,"dairyFree":false,"lowCalorie":false,"lowHistamine":false,"antiInflammatory":false},"notes":""}
 Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=protein_grams>0.10*calories; vegetarian=no meat/fish but eggs/dairy ok; glutenFree=no wheat/barley/rye; dairyFree=no dairy; lowCalorie=<400kcal/serving; lowHistamine=no aged cheeses/fermented/pickled/cured meats/shellfish/alcohol/vinegar; antiInflammatory=rich in omega-3s/berries/leafy greens/olive oil/turmeric/ginger.`;
   let recipeContent = input;
-  if (isUrl) {
-    const jinaResp = await fetch(`https://r.jina.ai/${input}`, { headers: { 'Accept': 'text/plain' } });
-    if (!jinaResp.ok) throw new Error('Could not fetch the URL. Try pasting the recipe text instead.');
-    recipeContent = await jinaResp.text();
+  try {
+    if (isUrl) {
+      const jinaResp = await fetch(`https://r.jina.ai/${input}`, { headers: { 'Accept': 'text/plain' } });
+      if (!jinaResp.ok) throw new Error('Could not fetch the URL. Try pasting the recipe text instead.');
+      recipeContent = await jinaResp.text();
+    }
+  } catch(fetchErr) {
+    document.getElementById('modal-container').innerHTML = `
+      <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal">
+          <div class="modal-header"><h2>Error</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+          <div class="modal-body">
+            <p style="color:#DC2626;margin-bottom:16px">⚠️ ${escapeHtml(fetchErr.message)}</p>
+            <div class="form-actions">
+              <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+              <button class="btn-primary" onclick="showRecipeInputModal()">Try Again</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    return;
   }
   const fullPrompt = `${systemPrompt}\n\nRecipe content:\n${recipeContent}`;
   try {
@@ -1575,6 +1592,7 @@ function saveRecipeFromPreview() {
 
 // ========== SETTINGS ==========
 function openSettings() {
+  try {
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
       <div class="modal">
@@ -1611,6 +1629,9 @@ function openSettings() {
         </div>
       </div>
     </div>`;
+  } catch(e) {
+    alert('Settings error: ' + e.message);
+  }
 }
 function toggleApiKeyVisibility() {
   const inp = document.getElementById('api-key-input');
@@ -1658,6 +1679,11 @@ if (!state.currentUser) {
   updateUserButtons();
 }
 render();
+// Belt-and-suspenders: also wire settings button via addEventListener
+(function() {
+  const btn = document.querySelector('.settings-btn');
+  if (btn) btn.addEventListener('click', openSettings);
+})();
 </script>
 </body>
 </html>
