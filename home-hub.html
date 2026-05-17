@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Hub</title>
+<style>
+:root {
+  --p-color: #0EA5E9;
+  --p-bg: #E0F2FE;
+  --p-dark: #0369A1;
+  --m-color: #EC4899;
+  --m-bg: #FCE7F3;
+  --m-dark: #BE185D;
+  --shared-color: #8B5CF6;
+  --shared-bg: #EDE9FE;
+  --header-from: #4F46E5;
+  --header-to: #7C3AED;
+  --bg: #F8FAFC;
+  --card-bg: #fff;
+  --border: #E2E8F0;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --transition: all 0.18s ease;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+#header {
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  color: #fff;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+}
+#header h1 { font-size: 1.2rem; font-weight: 700; flex: 1; letter-spacing: -0.02em; }
+.user-toggle { display: flex; gap: 4px; }
+.user-btn {
+  border: none;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  opacity: 0.6;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.user-btn.active-p { background: var(--p-color); opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+.user-btn.active-m { background: var(--m-color); opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+.settings-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+.settings-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* Tabs */
+#tabs {
+  display: flex;
+  background: #fff;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  overflow-x: auto;
+}
+.tab-btn {
+  flex: 1;
+  min-width: 80px;
+  border: none;
+  background: none;
+  padding: 12px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn.active { color: var(--header-from); border-bottom-color: var(--header-from); }
+.tab-btn:hover:not(.active) { color: var(--text); background: var(--bg); }
+
+/* Main content */
+#main { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* Filters bar */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.filter-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+.filter-select, .filter-btn-group { display: flex; gap: 4px; }
+select.filter-select-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+.filt-btn {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #fff;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.filt-btn.active { background: var(--header-from); border-color: var(--header-from); color: #fff; }
+
+/* Add button */
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 6px rgba(79,70,229,0.3);
+  margin-bottom: 14px;
+}
+.add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(79,70,229,0.35); }
+
+/* Cards */
+.cards-grid { display: flex; flex-direction: column; gap: 10px; }
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  position: relative;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card.done { opacity: 0.55; }
+.card.overdue { border-left: 3px solid #EF4444; }
+.card-header { display: flex; align-items: flex-start; gap: 10px; }
+.card-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+.card-check.checked { background: #22C55E; border-color: #22C55E; color: #fff; }
+.card-title { font-weight: 600; font-size: 0.95rem; flex: 1; line-height: 1.3; }
+.card-title.strikethrough { text-decoration: line-through; color: var(--text-muted); }
+.card-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 5px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.card-notes { font-size: 0.82rem; color: var(--text-muted); margin-top: 5px; font-style: italic; line-height: 1.4; }
+.card-actions { display: flex; gap: 6px; margin-top: 10px; justify-content: flex-end; }
+.card-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.card-btn:hover { background: var(--bg); color: var(--text); }
+.card-btn.danger:hover { background: #FEE2E2; border-color: #FCA5A5; color: #DC2626; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge-p { background: var(--p-bg); color: var(--p-dark); }
+.badge-m { background: var(--m-bg); color: var(--m-dark); }
+.badge-shared { background: var(--shared-bg); color: #6D28D9; }
+.badge-low { background: #F1F5F9; color: #475569; }
+.badge-medium { background: #FEF3C7; color: #92400E; }
+.badge-high { background: #FEE2E2; color: #991B1B; }
+.badge-overdue { background: #FEE2E2; color: #991B1B; }
+.badge-done-by { background: #DCFCE7; color: #166534; }
+.tag-badge { border-radius: 20px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; display: inline-flex; align-items: center; }
+.tag-keto { background: #FEF3C7; color: #92400E; }
+.tag-vegan { background: #DCFCE7; color: #166534; }
+.tag-highProtein { background: #DBEAFE; color: #1E40AF; }
+.tag-vegetarian { background: #D1FAE5; color: #065F46; }
+.tag-glutenFree { background: #FFEDD5; color: #9A3412; }
+.tag-dairyFree { background: #F3E8FF; color: #6B21A8; }
+.tag-lowCalorie { background: #CFFAFE; color: #155E75; }
+.tag-lowHistamine { background: #E0E7FF; color: #3730A3; }
+.tag-antiInflammatory { background: #FEF9C3; color: #854D0E; }
+.tag-badge.active-filter { box-shadow: 0 0 0 2px currentColor; }
+.badge-for-p { background: var(--p-bg); color: var(--p-dark); }
+.badge-for-m { background: var(--m-bg); color: var(--m-dark); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-state p { font-size: 0.9rem; }
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: slideUp 0.2s ease;
+}
+.modal-lg { max-width: 680px; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header {
+  padding: 20px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: var(--transition);
+}
+.modal-close:hover { background: var(--bg); color: var(--text); }
+.modal-body { padding: 16px 20px 20px; }
+.modal-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+.modal-tab {
+  padding: 8px 18px;
+  border: none;
+  background: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: var(--transition);
+}
+.modal-tab.active { color: var(--header-from); border-bottom-color: var(--header-from); }
+
+/* Forms */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group input[type=text],
+.form-group input[type=url],
+.form-group input[type=password],
+.form-group input[type=datetime-local],
+.form-group input[type=date],
+.form-group input[type=number],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  background: #fff;
+  color: var(--text);
+  transition: var(--transition);
+  font-family: inherit;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--header-from);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+}
+.form-group textarea { resize: vertical; min-height: 70px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 9px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary {
+  background: #fff;
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-secondary:hover { background: var(--bg); }
+.btn-danger {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: none;
+  border-radius: 9px;
+  padding: 9px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.owner-selector { display: flex; gap: 8px; }
+.owner-opt {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  padding: 7px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: var(--transition);
+  background: #fff;
+}
+.owner-opt.sel-p { border-color: var(--p-color); background: var(--p-bg); color: var(--p-dark); }
+.owner-opt.sel-m { border-color: var(--m-color); background: var(--m-bg); color: var(--m-dark); }
+.owner-opt.sel-shared { border-color: var(--shared-color); background: var(--shared-bg); color: #6D28D9; }
+
+/* Toggle tags */
+.tags-toggle-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.tag-toggle-btn {
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff;
+  color: var(--text-muted);
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tag-toggle-btn.on.keto { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }
+.tag-toggle-btn.on.vegan { background: #DCFCE7; color: #166534; border-color: #22C55E; }
+.tag-toggle-btn.on.highProtein { background: #DBEAFE; color: #1E40AF; border-color: #3B82F6; }
+.tag-toggle-btn.on.vegetarian { background: #D1FAE5; color: #065F46; border-color: #10B981; }
+.tag-toggle-btn.on.glutenFree { background: #FFEDD5; color: #9A3412; border-color: #F97316; }
+.tag-toggle-btn.on.dairyFree { background: #F3E8FF; color: #6B21A8; border-color: #A855F7; }
+.tag-toggle-btn.on.lowCalorie { background: #CFFAFE; color: #155E75; border-color: #06B6D4; }
+.tag-toggle-btn.on.lowHistamine { background: #E0E7FF; color: #3730A3; border-color: #6366F1; }
+.tag-toggle-btn.on.antiInflammatory { background: #FEF9C3; color: #854D0E; border-color: #EAB308; }
+
+/* For P/M toggles */
+.for-toggles { display: flex; gap: 10px; margin-top: 6px; }
+.for-toggle-btn {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  padding: 7px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: var(--transition);
+  background: #fff;
+}
+.for-toggle-btn.on-p { border-color: var(--p-color); background: var(--p-bg); color: var(--p-dark); }
+.for-toggle-btn.on-m { border-color: var(--m-color); background: var(--m-bg); color: var(--m-dark); }
+
+/* Recipe card */
+.recipe-card { cursor: pointer; }
+.recipe-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.recipe-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.recipe-macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 8px 0; background: var(--bg); border-radius: 8px; padding: 8px; }
+.macro-item { text-align: center; }
+.macro-val { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.macro-lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+.recipe-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+/* Grocery */
+.grocery-generate-btn {
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 6px rgba(5,150,105,0.3);
+}
+.grocery-generate-btn:hover { transform: translateY(-1px); }
+.clear-purchased-btn {
+  background: #fff;
+  color: #DC2626;
+  border: 1.5px solid #FCA5A5;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.clear-purchased-btn:hover { background: #FEE2E2; }
+
+/* Fullscreen overlay */
+.fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 300;
+  overflow-y: auto;
+  animation: fadeIn 0.15s ease;
+}
+.fullscreen-header {
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.fullscreen-header h2 { font-size: 1.1rem; font-weight: 700; }
+.fullscreen-body { max-width: 700px; margin: 0 auto; padding: 20px; }
+.store-section { margin-bottom: 28px; }
+.store-section h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid var(--border); padding-bottom: 6px; margin-bottom: 12px; }
+.grocery-list-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; margin-bottom: 7px; }
+.grocery-list-item.purchased { opacity: 0.45; }
+.grocery-list-item.purchased .gli-name { text-decoration: line-through; }
+.gli-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: var(--transition); }
+.gli-check.checked { background: #22C55E; border-color: #22C55E; color: #fff; }
+.gli-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.gli-qty { font-size: 0.82rem; color: var(--text-muted); }
+
+/* Who are you overlay */
+#who-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.who-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 40px;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.who-box h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+.who-box p { color: var(--text-muted); margin-bottom: 28px; font-size: 0.9rem; }
+.who-btns { display: flex; gap: 14px; }
+.who-btn {
+  flex: 1;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.who-btn:hover { transform: scale(1.05); }
+.who-btn-p { background: var(--p-bg); color: var(--p-color); border: 3px solid var(--p-color); }
+.who-btn-m { background: var(--m-bg); color: var(--m-color); border: 3px solid var(--m-color); }
+
+/* Loading spinner */
+.spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid rgba(79,70,229,0.2); border-top-color: var(--header-from); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-box { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 32px; color: var(--text-muted); font-size: 0.9rem; }
+
+/* API key input */
+.input-with-toggle { position: relative; }
+.input-with-toggle input { padding-right: 44px; }
+.show-hide-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; }
+
+/* Recipe detail modal */
+.recipe-detail-section { margin-bottom: 18px; }
+.recipe-detail-section h3 { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.ingredients-list, .procedure-list { padding-left: 18px; }
+.ingredients-list li { font-size: 0.88rem; margin-bottom: 4px; line-height: 1.5; }
+.procedure-list li { font-size: 0.88rem; margin-bottom: 8px; line-height: 1.5; }
+.macros-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.macros-table th { background: var(--bg); padding: 6px 10px; text-align: left; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+.macros-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.macros-table tr:last-child td { border-bottom: none; }
+
+/* Preview box */
+.preview-box { background: var(--bg); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.preview-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+.preview-box .preview-note { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
+/* Print */
+@media print {
+  body * { display: none !important; }
+  .fullscreen-overlay, .fullscreen-overlay * { display: block !important; }
+  .fullscreen-header .print-btn, .fullscreen-header .close-fl-btn { display: none !important; }
+  .gli-check { border: 2px solid #000 !important; background: none !important; }
+  .gli-check.checked::after { content: '✓'; font-weight: bold; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  #header h1 { font-size: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .recipe-grid { grid-template-columns: 1fr; }
+  .modal { max-height: 95vh; }
+}
+</style>
+</head>
+<body>
+
+<div id="who-overlay" style="display:none">
+  <div class="who-box">
+    <div class="empty-icon">🏠</div>
+    <h2>Home Hub</h2>
+    <p>Who are you?</p>
+    <div class="who-btns">
+      <button class="who-btn who-btn-p" onclick="setUser('P')">P</button>
+      <button class="who-btn who-btn-m" onclick="setUser('M')">M</button>
+    </div>
+  </div>
+</div>
+
+<div id="header">
+  <h1>🏠 Home Hub</h1>
+  <div class="user-toggle">
+    <button class="user-btn" id="btn-p" onclick="setUser('P')">P</button>
+    <button class="user-btn" id="btn-m" onclick="setUser('M')">M</button>
+  </div>
+  <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+</div>
+
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('reminders')">⏰ Reminders</button>
+  <button class="tab-btn" onclick="switchTab('todos')">✅ To-Do</button>
+  <button class="tab-btn" onclick="switchTab('grocery')">🛒 Grocery</button>
+  <button class="tab-btn" onclick="switchTab('recipes')">🍳 Recipes</button>
+</div>
+
+<div id="main"></div>
+
+<div id="modal-container"></div>
+
+<script>
+// ========== STATE ==========
+const STORE_KEY = 'homeHub_v1';
+let state = {
+  currentUser: null,
+  claudeApiKey: '',
+  claudeModel: 'claude-haiku-4-5-20251001',
+  reminders: [],
+  todos: [],
+  groceryItems: [],
+  customStores: [],
+  recipes: []
+};
+
+const DEFAULT_STORES = ['Walmart','Costco','Aldi','Meijer','Kroger','Amazon'];
+let activeTab = 'reminders';
+let reminderFilters = { owner: 'mine', status: 'active' };
+let todoFilters = { owner: 'mine', priority: 'all', assignee: 'all' };
+let groceryFilters = { owner: 'all' };
+let recipeFilters = { tags: [], search: '' };
+let recipeTabMode = 'url'; // url or paste
+let pendingRecipe = null;
+let editingId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDate(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  if (isNaN(d)) return dt;
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+}
+function formatDateTime(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  if (isNaN(d)) return dt;
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+}
+function isOverdue(dt) {
+  if (!dt) return false;
+  return new Date(dt) < new Date();
+}
+
+// ========== USER ==========
+function setUser(u) {
+  state.currentUser = u;
+  saveState();
+  document.getElementById('who-overlay').style.display = 'none';
+  updateUserButtons();
+  render();
+}
+function updateUserButtons() {
+  const bp = document.getElementById('btn-p');
+  const bm = document.getElementById('btn-m');
+  if (!bp || !bm) return;
+  bp.className = 'user-btn' + (state.currentUser === 'P' ? ' active-p' : '');
+  bm.className = 'user-btn' + (state.currentUser === 'M' ? ' active-m' : '');
+}
+
+// ========== TABS ==========
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['reminders','todos','grocery','recipes'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  render();
+}
+
+// ========== RENDER ==========
+function render() {
+  const main = document.getElementById('main');
+  if (activeTab === 'reminders') main.innerHTML = renderReminders();
+  else if (activeTab === 'todos') main.innerHTML = renderTodos();
+  else if (activeTab === 'grocery') main.innerHTML = renderGrocery();
+  else if (activeTab === 'recipes') main.innerHTML = renderRecipes();
+}
+
+// ========== OWNER FILTER HELPERS ==========
+function matchesOwnerFilter(item, filterVal) {
+  const cu = state.currentUser;
+  if (filterVal === 'mine') return item.owner === cu || item.owner === 'Shared';
+  if (filterVal === 'shared') return item.owner === 'Shared';
+  return true; // 'all'
+}
+
+// ========== REMINDERS ==========
+function renderReminders() {
+  let items = state.reminders.filter(r => matchesOwnerFilter(r, reminderFilters.owner));
+  if (reminderFilters.status === 'active') items = items.filter(r => !r.done);
+  else if (reminderFilters.status === 'done') items = items.filter(r => r.done);
+  items.sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+    if (a.dueDate) return -1;
+    if (b.dueDate) return 1;
+    return 0;
+  });
+  let html = `
+    <div class="filters-bar">
+      <span class="filter-label">Owner:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${reminderFilters.owner==='mine'?'active':''}" onclick="setReminderFilter('owner','mine')">Mine</button>
+        <button class="filt-btn ${reminderFilters.owner==='shared'?'active':''}" onclick="setReminderFilter('owner','shared')">Shared</button>
+        <button class="filt-btn ${reminderFilters.owner==='all'?'active':''}" onclick="setReminderFilter('owner','all')">All</button>
+      </div>
+      <span class="filter-label" style="margin-left:8px">Status:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${reminderFilters.status==='active'?'active':''}" onclick="setReminderFilter('status','active')">Active</button>
+        <button class="filt-btn ${reminderFilters.status==='done'?'active':''}" onclick="setReminderFilter('status','done')">Done</button>
+        <button class="filt-btn ${reminderFilters.status==='all'?'active':''}" onclick="setReminderFilter('status','all')">All</button>
+      </div>
+    </div>
+    <button class="add-btn" onclick="openAddReminder()">+ Add Reminder</button>
+    <div class="cards-grid">`;
+  if (items.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">⏰</div><p>No reminders here yet.</p></div>`;
+  } else {
+    items.forEach(r => { html += renderReminderCard(r); });
+  }
+  html += `</div>`;
+  return html;
+}
+function renderReminderCard(r) {
+  const over = r.dueDate && !r.done && isOverdue(r.dueDate);
+  return `<div class="card ${r.done?'done':''} ${over?'overdue':''}">
+    <div class="card-header">
+      <div class="card-check ${r.done?'checked':''}" onclick="toggleReminder('${r.id}')">${r.done?'✓':''}</div>
+      <div style="flex:1">
+        <div class="card-title ${r.done?'strikethrough':''}">${escapeHtml(r.title)}</div>
+        <div class="card-meta">
+          ${ownerBadge(r.owner)}
+          ${r.dueDate ? `<span class="${over?'badge badge-overdue':''}">📅 ${formatDateTime(r.dueDate)}</span>` : ''}
+          ${over ? `<span class="badge badge-overdue">Overdue</span>` : ''}
+        </div>
+        ${r.notes ? `<div class="card-notes">${escapeHtml(r.notes)}</div>` : ''}
+      </div>
+    </div>
+    <div class="card-actions">
+      <button class="card-btn" onclick="openEditReminder('${r.id}')">Edit</button>
+      <button class="card-btn danger" onclick="deleteReminder('${r.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function setReminderFilter(k, v) { reminderFilters[k] = v; render(); }
+function toggleReminder(id) {
+  const r = state.reminders.find(x => x.id === id);
+  if (r) { r.done = !r.done; saveState(); render(); }
+}
+function deleteReminder(id) {
+  if (!confirm('Delete this reminder?')) return;
+  state.reminders = state.reminders.filter(x => x.id !== id);
+  saveState(); render();
+}
+function openAddReminder() { editingId = null; showReminderModal(null); }
+function openEditReminder(id) { editingId = id; showReminderModal(state.reminders.find(x => x.id === id)); }
+function showReminderModal(r) {
+  const title = r ? escapeHtml(r.title) : '';
+  const notes = r ? escapeHtml(r.notes||'') : '';
+  const dueDate = r ? (r.dueDate||'') : '';
+  const owner = r ? r.owner : (state.currentUser||'P');
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>${r ? 'Edit Reminder' : 'Add Reminder'}</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" id="rem-title" value="${title}" placeholder="Reminder title">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="rem-notes" placeholder="Optional notes...">${notes}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Due Date & Time</label>
+            <input type="datetime-local" id="rem-due" value="${dueDate}">
+          </div>
+          <div class="form-group">
+            <label>Owner</label>
+            <div class="owner-selector">
+              <div class="owner-opt ${owner==='P'?'sel-p':''}" onclick="selectOwner(this,'P')">P</div>
+              <div class="owner-opt ${owner==='M'?'sel-m':''}" onclick="selectOwner(this,'M')">M</div>
+              <div class="owner-opt ${owner==='Shared'?'sel-shared':''}" onclick="selectOwner(this,'Shared')">Shared</div>
+            </div>
+            <input type="hidden" id="rem-owner" value="${owner}">
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveReminder()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function saveReminder() {
+  const title = document.getElementById('rem-title').value.trim();
+  if (!title) { alert('Title is required'); return; }
+  const obj = {
+    id: editingId || uid(),
+    title,
+    notes: document.getElementById('rem-notes').value.trim(),
+    dueDate: document.getElementById('rem-due').value,
+    owner: document.getElementById('rem-owner').value,
+    done: editingId ? state.reminders.find(x => x.id === editingId).done : false,
+    createdAt: editingId ? state.reminders.find(x => x.id === editingId).createdAt : Date.now()
+  };
+  if (editingId) state.reminders = state.reminders.map(x => x.id === editingId ? obj : x);
+  else state.reminders.push(obj);
+  saveState(); closeModal(); render();
+}
+
+// ========== TO-DO ==========
+function renderTodos() {
+  let items = state.todos.filter(t => matchesOwnerFilter(t, todoFilters.owner));
+  if (todoFilters.priority !== 'all') items = items.filter(t => t.priority === todoFilters.priority);
+  if (todoFilters.assignee !== 'all') items = items.filter(t => t.assignee === todoFilters.assignee || t.assignee === 'Both');
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  items.sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (priorityOrder[a.priority]||2) - (priorityOrder[b.priority]||2);
+  });
+  let html = `
+    <div class="filters-bar">
+      <span class="filter-label">Owner:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${todoFilters.owner==='mine'?'active':''}" onclick="setTodoFilter('owner','mine')">Mine</button>
+        <button class="filt-btn ${todoFilters.owner==='shared'?'active':''}" onclick="setTodoFilter('owner','shared')">Shared</button>
+        <button class="filt-btn ${todoFilters.owner==='all'?'active':''}" onclick="setTodoFilter('owner','all')">All</button>
+      </div>
+      <span class="filter-label" style="margin-left:8px">Priority:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${todoFilters.priority==='all'?'active':''}" onclick="setTodoFilter('priority','all')">All</button>
+        <button class="filt-btn ${todoFilters.priority==='high'?'active':''}" onclick="setTodoFilter('priority','high')">High</button>
+        <button class="filt-btn ${todoFilters.priority==='medium'?'active':''}" onclick="setTodoFilter('priority','medium')">Medium</button>
+        <button class="filt-btn ${todoFilters.priority==='low'?'active':''}" onclick="setTodoFilter('priority','low')">Low</button>
+      </div>
+      <span class="filter-label" style="margin-left:8px">Assignee:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${todoFilters.assignee==='all'?'active':''}" onclick="setTodoFilter('assignee','all')">All</button>
+        <button class="filt-btn ${todoFilters.assignee==='P'?'active':''}" onclick="setTodoFilter('assignee','P')">P</button>
+        <button class="filt-btn ${todoFilters.assignee==='M'?'active':''}" onclick="setTodoFilter('assignee','M')">M</button>
+        <button class="filt-btn ${todoFilters.assignee==='Both'?'active':''}" onclick="setTodoFilter('assignee','Both')">Both</button>
+      </div>
+    </div>
+    <button class="add-btn" onclick="openAddTodo()">+ Add To-Do</button>
+    <div class="cards-grid">`;
+  if (items.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">✅</div><p>Nothing to do here!</p></div>`;
+  } else {
+    items.forEach(t => { html += renderTodoCard(t); });
+  }
+  html += `</div>`;
+  return html;
+}
+function renderTodoCard(t) {
+  const over = t.dueDate && !t.done && isOverdue(t.dueDate);
+  const priorityCls = { low:'badge-low', medium:'badge-medium', high:'badge-high' }[t.priority] || 'badge-low';
+  return `<div class="card ${t.done?'done':''} ${over?'overdue':''}">
+    <div class="card-header">
+      <div class="card-check ${t.done?'checked':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div>
+      <div style="flex:1">
+        <div class="card-title ${t.done?'strikethrough':''}">${escapeHtml(t.title)}</div>
+        <div class="card-meta">
+          ${ownerBadge(t.owner)}
+          <span class="badge ${priorityCls}">${t.priority||'low'}</span>
+          ${t.assignee ? `<span style="font-size:0.78rem">→ ${escapeHtml(t.assignee)}</span>` : ''}
+          ${t.dueDate ? `<span class="${over?'badge badge-overdue':''}">📅 ${formatDate(t.dueDate)}</span>` : ''}
+          ${over ? `<span class="badge badge-overdue">Overdue</span>` : ''}
+          ${t.doneBy ? `<span class="badge badge-done-by">Done by ${escapeHtml(t.doneBy)}</span>` : ''}
+        </div>
+        ${t.notes ? `<div class="card-notes">${escapeHtml(t.notes)}</div>` : ''}
+      </div>
+    </div>
+    <div class="card-actions">
+      <button class="card-btn" onclick="openEditTodo('${t.id}')">Edit</button>
+      <button class="card-btn danger" onclick="deleteTodo('${t.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function setTodoFilter(k, v) { todoFilters[k] = v; render(); }
+function toggleTodo(id) {
+  const t = state.todos.find(x => x.id === id);
+  if (t) {
+    t.done = !t.done;
+    t.doneBy = t.done ? (state.currentUser||'?') : null;
+    saveState(); render();
+  }
+}
+function deleteTodo(id) {
+  if (!confirm('Delete this task?')) return;
+  state.todos = state.todos.filter(x => x.id !== id);
+  saveState(); render();
+}
+function openAddTodo() { editingId = null; showTodoModal(null); }
+function openEditTodo(id) { editingId = id; showTodoModal(state.todos.find(x => x.id === id)); }
+function showTodoModal(t) {
+  const title = t ? escapeHtml(t.title) : '';
+  const notes = t ? escapeHtml(t.notes||'') : '';
+  const dueDate = t ? (t.dueDate||'') : '';
+  const owner = t ? t.owner : (state.currentUser||'P');
+  const priority = t ? t.priority : 'medium';
+  const assignee = t ? t.assignee : 'Both';
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>${t ? 'Edit Task' : 'Add Task'}</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" id="todo-title" value="${title}" placeholder="Task title">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="todo-notes" placeholder="Optional notes...">${notes}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Due Date</label>
+              <input type="date" id="todo-due" value="${dueDate}">
+            </div>
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="todo-priority">
+                <option value="low" ${priority==='low'?'selected':''}>Low</option>
+                <option value="medium" ${priority==='medium'?'selected':''}>Medium</option>
+                <option value="high" ${priority==='high'?'selected':''}>High</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Owner</label>
+            <div class="owner-selector">
+              <div class="owner-opt ${owner==='P'?'sel-p':''}" onclick="selectOwner(this,'P')">P</div>
+              <div class="owner-opt ${owner==='M'?'sel-m':''}" onclick="selectOwner(this,'M')">M</div>
+              <div class="owner-opt ${owner==='Shared'?'sel-shared':''}" onclick="selectOwner(this,'Shared')">Shared</div>
+            </div>
+            <input type="hidden" id="todo-owner" value="${owner}">
+          </div>
+          <div class="form-group">
+            <label>Assignee (who should complete it)</label>
+            <select id="todo-assignee">
+              <option value="P" ${assignee==='P'?'selected':''}>P</option>
+              <option value="M" ${assignee==='M'?'selected':''}>M</option>
+              <option value="Both" ${assignee==='Both'?'selected':''}>Both</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveTodo()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function saveTodo() {
+  const title = document.getElementById('todo-title').value.trim();
+  if (!title) { alert('Title is required'); return; }
+  const existing = editingId ? state.todos.find(x => x.id === editingId) : null;
+  const obj = {
+    id: editingId || uid(),
+    title,
+    notes: document.getElementById('todo-notes').value.trim(),
+    dueDate: document.getElementById('todo-due').value,
+    priority: document.getElementById('todo-priority').value,
+    owner: document.getElementById('todo-owner').value,
+    assignee: document.getElementById('todo-assignee').value,
+    done: existing ? existing.done : false,
+    doneBy: existing ? existing.doneBy : null,
+    createdAt: existing ? existing.createdAt : Date.now()
+  };
+  if (editingId) state.todos = state.todos.map(x => x.id === editingId ? obj : x);
+  else state.todos.push(obj);
+  saveState(); closeModal(); render();
+}
+
+// ========== GROCERY ==========
+function allStores() { return [...DEFAULT_STORES, ...state.customStores]; }
+function renderGrocery() {
+  let items = state.groceryItems;
+  if (groceryFilters.owner !== 'all') items = items.filter(g => matchesOwnerFilter(g, groceryFilters.owner));
+  let html = `
+    <div class="filters-bar">
+      <span class="filter-label">Owner:</span>
+      <div class="filter-btn-group">
+        <button class="filt-btn ${groceryFilters.owner==='mine'?'active':''}" onclick="setGroceryFilter('owner','mine')">Mine</button>
+        <button class="filt-btn ${groceryFilters.owner==='shared'?'active':''}" onclick="setGroceryFilter('owner','shared')">Shared</button>
+        <button class="filt-btn ${groceryFilters.owner==='all'?'active':''}" onclick="setGroceryFilter('owner','all')">All</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="add-btn" style="margin:0" onclick="openAddGrocery()">+ Add Item</button>
+      <button class="grocery-generate-btn" onclick="openGroceryList()">📋 Generate List</button>
+      <button class="clear-purchased-btn" onclick="clearPurchased()">Clear Purchased</button>
+    </div>
+    <div class="cards-grid">`;
+  if (items.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">🛒</div><p>Grocery list is empty!</p></div>`;
+  } else {
+    items.forEach(g => { html += renderGroceryCard(g); });
+  }
+  html += `</div>`;
+  return html;
+}
+function renderGroceryCard(g) {
+  return `<div class="card ${g.purchased?'done':''}">
+    <div class="card-header">
+      <div class="gli-check ${g.purchased?'checked':''}" onclick="toggleGrocery('${g.id}')">${g.purchased?'✓':''}</div>
+      <div style="flex:1">
+        <div class="card-title ${g.purchased?'strikethrough':''}">${escapeHtml(g.name)}</div>
+        <div class="card-meta">
+          ${ownerBadge(g.owner)}
+          ${g.quantity ? `<span>${escapeHtml(String(g.quantity))} ${escapeHtml(g.unit||'')}</span>` : ''}
+          ${g.store ? `<span>🏪 ${escapeHtml(g.store)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button class="card-btn" onclick="openEditGrocery('${g.id}')">Edit</button>
+      <button class="card-btn danger" onclick="deleteGrocery('${g.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function setGroceryFilter(k, v) { groceryFilters[k] = v; render(); }
+function toggleGrocery(id) {
+  const g = state.groceryItems.find(x => x.id === id);
+  if (g) { g.purchased = !g.purchased; saveState(); render(); }
+}
+function toggleGroceryFromList(id) {
+  const g = state.groceryItems.find(x => x.id === id);
+  if (g) {
+    g.purchased = !g.purchased;
+    saveState();
+    const el = document.querySelector(`[data-grocery-id="${id}"]`);
+    if (el) {
+      el.classList.toggle('purchased', g.purchased);
+      const chk = el.querySelector('.gli-check');
+      if (chk) { chk.classList.toggle('checked', g.purchased); chk.textContent = g.purchased ? '✓' : ''; }
+      const nm = el.querySelector('.gli-name');
+      if (nm) nm.style.textDecoration = g.purchased ? 'line-through' : '';
+    }
+  }
+}
+function deleteGrocery(id) {
+  if (!confirm('Delete this item?')) return;
+  state.groceryItems = state.groceryItems.filter(x => x.id !== id);
+  saveState(); render();
+}
+function clearPurchased() {
+  if (!confirm('Remove all purchased items?')) return;
+  state.groceryItems = state.groceryItems.filter(x => !x.purchased);
+  saveState(); render();
+}
+function openAddGrocery() { editingId = null; showGroceryModal(null); }
+function openEditGrocery(id) { editingId = id; showGroceryModal(state.groceryItems.find(x => x.id === id)); }
+function showGroceryModal(g) {
+  const stores = allStores();
+  const name = g ? escapeHtml(g.name) : '';
+  const qty = g ? escapeHtml(String(g.quantity||'')) : '';
+  const unit = g ? escapeHtml(g.unit||'') : '';
+  const store = g ? g.store : '';
+  const owner = g ? g.owner : (state.currentUser||'P');
+  const storeOpts = `<option value="">None</option>` + stores.map(s => `<option value="${escapeHtml(s)}" ${store===s?'selected':''}>${escapeHtml(s)}</option>`).join('') + `<option value="__custom__">+ Add store...</option>`;
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>${g ? 'Edit Item' : 'Add Grocery Item'}</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Item Name *</label>
+            <input type="text" id="groc-name" value="${name}" placeholder="e.g. Milk">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="text" id="groc-qty" value="${qty}" placeholder="e.g. 2">
+            </div>
+            <div class="form-group">
+              <label>Unit</label>
+              <input type="text" id="groc-unit" value="${unit}" placeholder="e.g. lbs, oz">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Store</label>
+            <select id="groc-store" onchange="handleStoreChange(this)">${storeOpts}</select>
+            <input type="hidden" id="groc-store-val" value="${escapeHtml(store)}">
+          </div>
+          <div id="groc-custom-store-row" style="display:none" class="form-group">
+            <label>New Store Name</label>
+            <input type="text" id="groc-custom-store" placeholder="Enter store name">
+          </div>
+          <div class="form-group">
+            <label>Owner</label>
+            <div class="owner-selector">
+              <div class="owner-opt ${owner==='P'?'sel-p':''}" onclick="selectOwner(this,'P')">P</div>
+              <div class="owner-opt ${owner==='M'?'sel-m':''}" onclick="selectOwner(this,'M')">M</div>
+              <div class="owner-opt ${owner==='Shared'?'sel-shared':''}" onclick="selectOwner(this,'Shared')">Shared</div>
+            </div>
+            <input type="hidden" id="groc-owner" value="${owner}">
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveGrocery()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function handleStoreChange(sel) {
+  const row = document.getElementById('groc-custom-store-row');
+  const val = document.getElementById('groc-store-val');
+  if (sel.value === '__custom__') {
+    row.style.display = 'block';
+    val.value = '';
+  } else {
+    row.style.display = 'none';
+    val.value = sel.value;
+  }
+}
+function saveGrocery() {
+  const name = document.getElementById('groc-name').value.trim();
+  if (!name) { alert('Item name is required'); return; }
+  let storeVal = document.getElementById('groc-store-val').value;
+  const storeSelect = document.getElementById('groc-store');
+  if (storeSelect.value === '__custom__') {
+    storeVal = document.getElementById('groc-custom-store').value.trim();
+    if (storeVal && !state.customStores.includes(storeVal)) {
+      state.customStores.push(storeVal);
+    }
+  } else {
+    storeVal = storeSelect.value;
+  }
+  const existing = editingId ? state.groceryItems.find(x => x.id === editingId) : null;
+  const obj = {
+    id: editingId || uid(),
+    name,
+    quantity: document.getElementById('groc-qty').value.trim(),
+    unit: document.getElementById('groc-unit').value.trim(),
+    store: storeVal,
+    owner: document.getElementById('groc-owner').value,
+    purchased: existing ? existing.purchased : false,
+    createdAt: existing ? existing.createdAt : Date.now()
+  };
+  if (editingId) state.groceryItems = state.groceryItems.map(x => x.id === editingId ? obj : x);
+  else state.groceryItems.push(obj);
+  saveState(); closeModal(); render();
+}
+function openGroceryList() {
+  const items = state.groceryItems;
+  const storeMap = {};
+  items.forEach(g => {
+    const s = g.store || '__unassigned__';
+    if (!storeMap[s]) storeMap[s] = [];
+    storeMap[s].push(g);
+  });
+  const storeOrder = Object.keys(storeMap).filter(s => s !== '__unassigned__').sort();
+  if (storeMap['__unassigned__']) storeOrder.push('__unassigned__');
+  let sectionsHtml = '';
+  storeOrder.forEach(store => {
+    const sItems = storeMap[store];
+    sectionsHtml += `<div class="store-section"><h3>${store === '__unassigned__' ? 'Unassigned' : escapeHtml(store)}</h3>`;
+    sItems.forEach(g => {
+      sectionsHtml += `<div class="grocery-list-item ${g.purchased?'purchased':''}" data-grocery-id="${g.id}">
+        <div class="gli-check ${g.purchased?'checked':''}" onclick="toggleGroceryFromList('${g.id}')">${g.purchased?'✓':''}</div>
+        <div class="gli-name">${escapeHtml(g.name)}</div>
+        <div class="gli-qty">${g.quantity ? escapeHtml(String(g.quantity)) + (g.unit ? ' ' + escapeHtml(g.unit) : '') : ''}</div>
+        ${ownerBadge(g.owner)}
+      </div>`;
+    });
+    sectionsHtml += `</div>`;
+  });
+  if (!sectionsHtml) sectionsHtml = `<div class="empty-state"><div class="empty-icon">🛒</div><p>No items in list.</p></div>`;
+  document.getElementById('modal-container').innerHTML = `
+    <div class="fullscreen-overlay" id="grocery-overlay">
+      <div class="fullscreen-header">
+        <h2>🛒 Grocery List</h2>
+        <div style="display:flex;gap:8px">
+          <button class="print-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="window.print()">🖨️ Print</button>
+          <button class="close-fl-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="closeGroceryList()">✕ Close</button>
+        </div>
+      </div>
+      <div class="fullscreen-body">${sectionsHtml}</div>
+    </div>`;
+}
+function closeGroceryList() {
+  document.getElementById('modal-container').innerHTML = '';
+  render();
+}
+
+// ========== RECIPES ==========
+const TAG_LABELS = {
+  keto:'Keto', vegan:'Vegan', highProtein:'High-Protein', vegetarian:'Vegetarian',
+  glutenFree:'Gluten-Free', dairyFree:'Dairy-Free', lowCalorie:'Low-Calorie',
+  lowHistamine:'Low-Histamine', antiInflammatory:'Anti-Inflammatory'
+};
+const TAG_KEYS = Object.keys(TAG_LABELS);
+
+function renderRecipes() {
+  let items = state.recipes;
+  if (recipeFilters.search) {
+    const q = recipeFilters.search.toLowerCase();
+    items = items.filter(r => r.title.toLowerCase().includes(q));
+  }
+  if (recipeFilters.tags.length > 0) {
+    items = items.filter(r => recipeFilters.tags.every(tag => r.tags && r.tags[tag]));
+  }
+  const tagFilterHtml = TAG_KEYS.map(tag => {
+    const on = recipeFilters.tags.includes(tag);
+    return `<button class="tag-toggle-btn ${on?'on '+tag:''}" onclick="toggleRecipeTagFilter('${tag}')">${TAG_LABELS[tag]}</button>`;
+  }).join('');
+  let html = `
+    <div class="filters-bar" style="flex-direction:column;align-items:flex-start">
+      <div style="display:flex;gap:8px;align-items:center;width:100%;flex-wrap:wrap">
+        <input type="text" style="border:1.5px solid var(--border);border-radius:9px;padding:7px 12px;font-size:0.88rem;flex:1;min-width:160px" placeholder="Search recipes..." value="${escapeHtml(recipeFilters.search)}" oninput="setRecipeSearch(this.value)">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        <span class="filter-label" style="align-self:center">Filter by tag:</span>
+        ${tagFilterHtml}
+        ${recipeFilters.tags.length > 0 ? `<button class="filt-btn" onclick="clearRecipeTagFilters()">Clear</button>` : ''}
+      </div>
+    </div>
+    <button class="add-btn" onclick="openAddRecipe()">+ Add Recipe</button>
+    <div class="recipe-grid">`;
+  if (items.length === 0) {
+    html += `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🍳</div><p>No recipes yet. Add one!</p></div>`;
+  } else {
+    items.forEach(r => { html += renderRecipeCard(r); });
+  }
+  html += `</div>`;
+  return html;
+}
+function renderRecipeCard(r) {
+  const tags = r.tags || {};
+  const tagBadges = TAG_KEYS.filter(t => tags[t]).map(t => {
+    const isActive = recipeFilters.tags.includes(t);
+    return `<span class="tag-badge tag-${t} ${isActive?'active-filter':''}">${TAG_LABELS[t]}</span>`;
+  }).join('');
+  const forBadges = [r.forP ? `<span class="badge badge-for-p">For P</span>` : '', r.forM ? `<span class="badge badge-for-m">For M</span>` : ''].filter(Boolean).join('');
+  const mp = r.macrosPerServing || {};
+  return `<div class="card recipe-card" onclick="openRecipeDetail('${r.id}')">
+    <div class="recipe-title">${escapeHtml(r.title)}</div>
+    <div class="card-meta" style="margin-bottom:4px">${r.servings ? `${r.servings} servings` : ''}</div>
+    ${mp.calories !== undefined ? `
+    <div class="recipe-macros">
+      <div class="macro-item"><div class="macro-val">${mp.calories}</div><div class="macro-lbl">kcal</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.protein}g</div><div class="macro-lbl">protein</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.netCarbs}g</div><div class="macro-lbl">net carbs</div></div>
+    </div>` : ''}
+    <div class="recipe-tags">${tagBadges}${forBadges}</div>
+    <div class="card-actions" onclick="event.stopPropagation()">
+      <button class="card-btn" onclick="openEditRecipe('${r.id}')">Edit</button>
+      <button class="card-btn danger" onclick="deleteRecipe('${r.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function toggleRecipeTagFilter(tag) {
+  const idx = recipeFilters.tags.indexOf(tag);
+  if (idx >= 0) recipeFilters.tags.splice(idx, 1);
+  else recipeFilters.tags.push(tag);
+  render();
+}
+function clearRecipeTagFilters() { recipeFilters.tags = []; render(); }
+function setRecipeSearch(v) { recipeFilters.search = v; render(); }
+function deleteRecipe(id) {
+  if (!confirm('Delete this recipe?')) return;
+  state.recipes = state.recipes.filter(x => x.id !== id);
+  saveState(); render();
+}
+function openRecipeDetail(id) {
+  const r = state.recipes.find(x => x.id === id);
+  if (!r) return;
+  const tags = r.tags || {};
+  const tagBadges = TAG_KEYS.filter(t => tags[t]).map(t => `<span class="tag-badge tag-${t}">${TAG_LABELS[t]}</span>`).join('');
+  const forBadges = [r.forP ? `<span class="badge badge-for-p">For P</span>` : '', r.forM ? `<span class="badge badge-for-m">For M</span>` : ''].filter(Boolean).join('');
+  const mp = r.macrosPerServing || {};
+  const mt = r.macrosTotal || {};
+  const ingList = (r.ingredients||[]).map(i => `<li>${escapeHtml(i)}</li>`).join('');
+  const procList = (r.procedure||[]).map((s,idx) => `<li><strong>Step ${idx+1}:</strong> ${escapeHtml(s)}</li>`).join('');
+  const macroFields = [['Calories','calories','kcal'],['Protein','protein','g'],['Carbs','carbs','g'],['Fat','fat','g'],['Fiber','fiber','g'],['Net Carbs','netCarbs','g']];
+  const macroRows = macroFields.map(([lbl,key,unit]) =>
+    `<tr><td><strong>${lbl}</strong></td><td>${mp[key] !== undefined ? mp[key]+unit : '-'}</td><td>${mt[key] !== undefined ? mt[key]+unit : '-'}</td></tr>`
+  ).join('');
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>${escapeHtml(r.title)}</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${tagBadges}${forBadges}</div>
+          ${r.servings ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">Servings: <strong>${r.servings}</strong></p>` : ''}
+          <div class="recipe-detail-section">
+            <h3>Ingredients</h3>
+            <ul class="ingredients-list">${ingList || '<li>No ingredients listed.</li>'}</ul>
+          </div>
+          <div class="recipe-detail-section">
+            <h3>Procedure</h3>
+            <ol class="procedure-list">${procList || '<li>No steps listed.</li>'}</ol>
+          </div>
+          ${mp.calories !== undefined ? `
+          <div class="recipe-detail-section">
+            <h3>Macros</h3>
+            <table class="macros-table">
+              <thead><tr><th>Nutrient</th><th>Per Serving</th><th>Total</th></tr></thead>
+              <tbody>${macroRows}</tbody>
+            </table>
+          </div>` : ''}
+          ${r.notes ? `<div class="recipe-detail-section"><h3>Notes</h3><p style="font-size:0.88rem">${escapeHtml(r.notes)}</p></div>` : ''}
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+            <button class="btn-primary" onclick="closeModal();openEditRecipe('${r.id}')">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function openEditRecipe(id) {
+  const r = state.recipes.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  pendingRecipe = JSON.parse(JSON.stringify(r));
+  showRecipePreviewModal(pendingRecipe, true);
+}
+function openAddRecipe() {
+  editingId = null;
+  pendingRecipe = null;
+  showRecipeInputModal();
+}
+function showRecipeInputModal() {
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Add Recipe</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-tabs">
+            <button class="modal-tab ${recipeTabMode==='url'?'active':''}" onclick="switchRecipeTab('url')">From URL</button>
+            <button class="modal-tab ${recipeTabMode==='paste'?'active':''}" onclick="switchRecipeTab('paste')">Paste Text</button>
+          </div>
+          <div id="recipe-input-area">
+            ${recipeTabMode === 'url' ?
+              `<div class="form-group">
+                <label>Recipe URL</label>
+                <input type="url" id="recipe-url" placeholder="https://...">
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:-8px;margin-bottom:12px">Claude will fetch and parse this recipe URL.</p>` :
+              `<div class="form-group">
+                <label>Paste Recipe Text</label>
+                <textarea id="recipe-text" style="min-height:160px" placeholder="Paste the recipe content here..."></textarea>
+              </div>`
+            }
+          </div>
+          ${!state.claudeApiKey ? `<div style="background:#FEF3C7;border-radius:9px;padding:10px 14px;font-size:0.83rem;color:#92400E;margin-bottom:12px">⚠️ No Claude API key set. <button style="background:none;border:none;cursor:pointer;color:#92400E;font-weight:700;text-decoration:underline" onclick="closeModal();openSettings()">Set it in Settings</button></div>` : ''}
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="submitRecipeToClyde()" ${!state.claudeApiKey?'disabled title="Set API key in Settings first"':''}>Extract with Claude</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function switchRecipeTab(mode) {
+  recipeTabMode = mode;
+  showRecipeInputModal();
+}
+async function submitRecipeToClyde() {
+  const isUrl = recipeTabMode === 'url';
+  const inputEl = document.getElementById(isUrl ? 'recipe-url' : 'recipe-text');
+  const input = inputEl ? inputEl.value.trim() : '';
+  if (!input) { alert(isUrl ? 'Please enter a URL' : 'Please paste recipe text'); return; }
+  if (!state.claudeApiKey) { alert('Please set your Claude API key in Settings'); return; }
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header"><h2>Extracting Recipe...</h2></div>
+        <div class="modal-body">
+          <div class="loading-box">
+            <div class="spinner"></div>
+            <p>Claude is analyzing the recipe...</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const systemPrompt = `You are a recipe extraction assistant. Extract the recipe from the provided content and return ONLY a valid JSON object with NO markdown code blocks, NO extra text. Use exactly this structure:
+{"title":"Recipe name","servings":4,"ingredients":["1 cup flour","2 eggs"],"procedure":["Step 1: ...","Step 2: ..."],"macrosPerServing":{"calories":350,"protein":25,"carbs":40,"fat":12,"fiber":5,"netCarbs":35},"macrosTotal":{"calories":1400,"protein":100,"carbs":160,"fat":48,"fiber":20,"netCarbs":140},"tags":{"keto":false,"vegan":false,"highProtein":false,"vegetarian":false,"glutenFree":false,"dairyFree":false,"lowCalorie":false,"lowHistamine":false,"antiInflammatory":false},"notes":""}
+Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=protein_grams>0.10*calories; vegetarian=no meat/fish but eggs/dairy ok; glutenFree=no wheat/barley/rye; dairyFree=no dairy; lowCalorie=<400kcal/serving; lowHistamine=no aged cheeses/fermented/pickled/cured meats/shellfish/alcohol/vinegar; antiInflammatory=rich in omega-3s/berries/leafy greens/olive oil/turmeric/ginger.`;
+  const userMsg = isUrl ? `Extract this recipe from the URL: ${input}` : `Extract this recipe from the following text:\n\n${input}`;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.claudeApiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: state.claudeModel || 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `API error ${resp.status}`);
+    }
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '';
+    let parsed;
+    try {
+      const cleaned = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
+      parsed = JSON.parse(cleaned);
+    } catch(e) {
+      throw new Error('Claude returned invalid JSON. Try again.');
+    }
+    pendingRecipe = parsed;
+    pendingRecipe.id = pendingRecipe.id || uid();
+    pendingRecipe.forP = false;
+    pendingRecipe.forM = false;
+    showRecipePreviewModal(pendingRecipe, false);
+  } catch(err) {
+    document.getElementById('modal-container').innerHTML = `
+      <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal">
+          <div class="modal-header"><h2>Error</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+          <div class="modal-body">
+            <p style="color:#DC2626;margin-bottom:16px">⚠️ ${escapeHtml(err.message)}</p>
+            <div class="form-actions">
+              <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+              <button class="btn-primary" onclick="showRecipeInputModal()">Try Again</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+function showRecipePreviewModal(r, isEdit) {
+  const tags = r.tags || {};
+  const tagToggles = TAG_KEYS.map(tag => {
+    const on = !!tags[tag];
+    return `<button class="tag-toggle-btn ${on?'on '+tag:''}" onclick="togglePendingTag('${tag}',this)">${TAG_LABELS[tag]}</button>`;
+  }).join('');
+  const mp = r.macrosPerServing || {};
+  const macroSummary = mp.calories !== undefined ?
+    `<div class="recipe-macros" style="margin:8px 0">
+      <div class="macro-item"><div class="macro-val">${mp.calories}</div><div class="macro-lbl">kcal</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.protein}g</div><div class="macro-lbl">protein</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.netCarbs}g</div><div class="macro-lbl">net carbs</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.fat}g</div><div class="macro-lbl">fat</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.carbs}g</div><div class="macro-lbl">carbs</div></div>
+      <div class="macro-item"><div class="macro-val">${mp.fiber}g</div><div class="macro-lbl">fiber</div></div>
+    </div>` : '';
+  const ingPreview = (r.ingredients||[]).slice(0,5).map(i => `<li>${escapeHtml(i)}</li>`).join('');
+  const moreIng = (r.ingredients||[]).length > 5 ? `<li style="color:var(--text-muted)">+${r.ingredients.length-5} more...</li>` : '';
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>${isEdit ? 'Edit Recipe' : 'Recipe Preview'}</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="preview-box">
+            <div class="form-group" style="margin-bottom:8px">
+              <label>Title</label>
+              <input type="text" id="prev-title" value="${escapeHtml(r.title||'')}">
+            </div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label>Servings</label>
+              <input type="number" id="prev-servings" value="${r.servings||''}" min="1">
+            </div>
+            ${macroSummary}
+            ${ingPreview ? `<div style="margin-top:8px"><strong style="font-size:0.8rem">Ingredients preview:</strong><ul style="padding-left:16px;margin-top:4px;font-size:0.82rem">${ingPreview}${moreIng}</ul></div>` : ''}
+          </div>
+          <div class="form-group">
+            <label>Dietary Tags (toggle to adjust)</label>
+            <div class="tags-toggle-grid" id="pending-tags">${tagToggles}</div>
+          </div>
+          <div class="form-group">
+            <label>For</label>
+            <div class="for-toggles">
+              <button class="for-toggle-btn ${r.forP?'on-p':''}" id="for-p-btn" onclick="toggleForUser('P',this)">For P</button>
+              <button class="for-toggle-btn ${r.forM?'on-m':''}" id="for-m-btn" onclick="toggleForUser('M',this)">For M</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="prev-notes" style="min-height:60px">${escapeHtml(r.notes||'')}</textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">${isEdit ? 'Cancel' : 'Discard'}</button>
+            ${!isEdit ? `<button class="btn-secondary" onclick="showRecipeInputModal()">← Back</button>` : ''}
+            <button class="btn-primary" onclick="saveRecipeFromPreview()">Save Recipe</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function togglePendingTag(tag, btn) {
+  if (!pendingRecipe.tags) pendingRecipe.tags = {};
+  pendingRecipe.tags[tag] = !pendingRecipe.tags[tag];
+  const on = pendingRecipe.tags[tag];
+  btn.className = `tag-toggle-btn ${on ? 'on ' + tag : ''}`;
+  btn.textContent = TAG_LABELS[tag];
+}
+function toggleForUser(user, btn) {
+  if (user === 'P') {
+    pendingRecipe.forP = !pendingRecipe.forP;
+    btn.className = `for-toggle-btn ${pendingRecipe.forP ? 'on-p' : ''}`;
+  } else {
+    pendingRecipe.forM = !pendingRecipe.forM;
+    btn.className = `for-toggle-btn ${pendingRecipe.forM ? 'on-m' : ''}`;
+  }
+}
+function saveRecipeFromPreview() {
+  if (!pendingRecipe) return;
+  const titleEl = document.getElementById('prev-title');
+  const servEl = document.getElementById('prev-servings');
+  const notesEl = document.getElementById('prev-notes');
+  pendingRecipe.title = titleEl ? titleEl.value.trim() : pendingRecipe.title;
+  pendingRecipe.servings = servEl ? parseInt(servEl.value) || pendingRecipe.servings : pendingRecipe.servings;
+  pendingRecipe.notes = notesEl ? notesEl.value.trim() : pendingRecipe.notes;
+  if (!pendingRecipe.title) { alert('Title is required'); return; }
+  if (!pendingRecipe.id) pendingRecipe.id = uid();
+  pendingRecipe.savedAt = Date.now();
+  if (editingId) {
+    state.recipes = state.recipes.map(x => x.id === editingId ? pendingRecipe : x);
+  } else {
+    state.recipes.push(pendingRecipe);
+  }
+  pendingRecipe = null;
+  editingId = null;
+  saveState(); closeModal(); render();
+}
+
+// ========== SETTINGS ==========
+function openSettings() {
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>⚙️ Settings</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Current User</label>
+            <div style="font-size:1.1rem;font-weight:700;color:${state.currentUser==='P'?'var(--p-color)':'var(--m-color)'}">
+              ${state.currentUser || 'Not set'}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Claude API Key</label>
+            <div class="input-with-toggle">
+              <input type="password" id="api-key-input" value="${escapeHtml(state.claudeApiKey)}" placeholder="sk-ant-...">
+              <button class="show-hide-btn" onclick="toggleApiKeyVisibility()">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Claude Model</label>
+            <select id="model-select">
+              <option value="claude-haiku-4-5-20251001" ${state.claudeModel==='claude-haiku-4-5-20251001'?'selected':''}>claude-haiku-4-5-20251001 (Default)</option>
+              <option value="claude-sonnet-4-5-20251101" ${state.claudeModel==='claude-sonnet-4-5-20251101'?'selected':''}>claude-sonnet-4-5-20251101</option>
+              <option value="claude-opus-4-5-20251101" ${state.claudeModel==='claude-opus-4-5-20251101'?'selected':''}>claude-opus-4-5-20251101</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveSettings()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function toggleApiKeyVisibility() {
+  const inp = document.getElementById('api-key-input');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function saveSettings() {
+  const k = document.getElementById('api-key-input');
+  const m = document.getElementById('model-select');
+  if (k) state.claudeApiKey = k.value.trim();
+  if (m) state.claudeModel = m.value;
+  saveState();
+  closeModal();
+  render();
+}
+
+// ========== SHARED HELPERS ==========
+function ownerBadge(owner) {
+  if (owner === 'P') return `<span class="badge badge-p">P</span>`;
+  if (owner === 'M') return `<span class="badge badge-m">M</span>`;
+  return `<span class="badge badge-shared">Shared</span>`;
+}
+function selectOwner(el, val) {
+  const container = el.parentElement;
+  container.querySelectorAll('.owner-opt').forEach(o => {
+    o.className = 'owner-opt';
+  });
+  if (val === 'P') el.className = 'owner-opt sel-p';
+  else if (val === 'M') el.className = 'owner-opt sel-m';
+  else el.className = 'owner-opt sel-shared';
+  const hiddenInput = container.nextElementSibling;
+  if (hiddenInput && hiddenInput.type === 'hidden') hiddenInput.value = val;
+}
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+}
+function closeModalOnBackdrop(event) {
+  if (event.target === event.currentTarget) closeModal();
+}
+
+// ========== INIT ==========
+loadState();
+if (!state.currentUser) {
+  document.getElementById('who-overlay').style.display = 'flex';
+} else {
+  updateUserButtons();
+}
+render();
+</script>
+</body>
+</html>
