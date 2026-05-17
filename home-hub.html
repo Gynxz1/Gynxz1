@@ -622,6 +622,7 @@ select.filter-select-input {
 
 <div id="header">
   <h1>&#127968; Home Hub</h1>
+  <div id="sync-indicator" style="font-size:0.72rem;letter-spacing:0.02em;min-width:60px;text-align:center"></div>
   <div class="user-toggle">
     <button class="user-btn" id="btn-p" onclick="setUser('P')">P</button>
     <button class="user-btn" id="btn-m" onclick="setUser('M')">M</button>
@@ -665,6 +666,21 @@ select.filter-select-input {
           <option value="gemini-1.5-pro">gemini-1.5-pro (Paid &mdash; Most accurate)</option>
         </select>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Cloud Sync (optional)</div>
+      <div class="form-group">
+        <label>Sync URL <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">Supabase project URL</span></label>
+        <input type="text" id="sync-url-input" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label>Sync Key <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">Supabase anon/public key</span></label>
+        <div class="input-with-toggle">
+          <input type="password" id="sync-key-input" placeholder="eyJ...">
+          <button class="show-hide-btn" id="show-hide-sync-btn">&#128065;</button>
+        </div>
+      </div>
+      <div id="sync-test-result" style="font-size:0.8rem;margin-bottom:8px;min-height:20px"></div>
+      <button type="button" id="test-sync-btn" class="btn-secondary" style="width:100%;margin-bottom:8px">Test Connection</button>
       <div class="form-actions">
         <button class="btn-secondary" id="settings-cancel-btn">Cancel</button>
         <button class="btn-primary" id="settings-save-btn">Save</button>
@@ -1847,6 +1863,10 @@ if (!state.currentUser) {
   updateUserButtons();
 }
 render();
+if (isSyncEnabled()) startSyncPolling();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && isSyncEnabled()) syncFromRemote();
+});
 
 // Wire settings panel buttons via addEventListener (most reliable)
 document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
@@ -1855,6 +1875,20 @@ document.getElementById('settings-save-btn').addEventListener('click', saveSetti
 document.getElementById('show-hide-key-btn').addEventListener('click', toggleApiKeyVisibility);
 document.getElementById('settings-panel').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
+});
+document.getElementById('show-hide-sync-btn').addEventListener('click', function() {
+  const inp = document.getElementById('sync-key-input');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+});
+document.getElementById('test-sync-btn').addEventListener('click', async function() {
+  const url = (document.getElementById('sync-url-input').value || '').trim().replace(/\/$/, '');
+  const key = (document.getElementById('sync-key-input').value || '').trim();
+  const el = document.getElementById('sync-test-result');
+  if (!url || !key) { el.textContent = '⚠️ Enter URL and key first'; el.style.color = 'var(--yellow)'; return; }
+  el.textContent = 'Testing...'; el.style.color = 'var(--text-muted)';
+  const ok = await testSyncConnection(url, key);
+  el.textContent = ok ? '✓ Connected! Save settings to start syncing.' : '✗ Connection failed. Check URL and key.';
+  el.style.color = ok ? '#22C55E' : '#EF4444';
 });
 // Also keep the header settings button wired both ways:
 const settingsBtn = document.querySelector('.settings-btn');
