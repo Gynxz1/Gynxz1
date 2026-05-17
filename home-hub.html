@@ -687,6 +687,13 @@ select.filter-select-input {
           <option value="gemini-2.5-pro">gemini-2.5-pro (Paid &mdash; Best accuracy)</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>USDA Food Database Key <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">free at fdc.nal.usda.gov &mdash; search 300K+ foods</span></label>
+        <div class="input-with-toggle">
+          <input type="password" id="usda-key-input" placeholder="DEMO_KEY or your key">
+          <button class="show-hide-btn" id="show-hide-usda-btn">&#128065;</button>
+        </div>
+      </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
       <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Cloud Sync (optional)</div>
       <div class="form-group">
@@ -726,7 +733,8 @@ let state = {
   groceryItems: [],
   customStores: [],
   recipes: [],
-  customIngredients: []
+  customIngredients: [],
+  usdaApiKey: ''
 };
 
 // Macros per 100g, cost per 100g in USD, units map = grams per unit
@@ -1606,9 +1614,17 @@ function renderRecipeCard(r) {
   }).join('');
   const forBadges = [r.forP ? `<span class="badge badge-for-p">For P</span>` : '', r.forM ? `<span class="badge badge-for-m">For M</span>` : ''].filter(Boolean).join('');
   const mp = r.macrosPerServing || {};
+  const grade = r.healthGrade ? healthGrade(r.macrosPerServing) : null;
+  const timeParts = [r.prepTime ? `Prep: ${r.prepTime}` : '', r.cookTime ? `Cook: ${r.cookTime}` : ''].filter(Boolean).join(' · ');
   return `<div class="card recipe-card" onclick="openRecipeDetail('${r.id}')">
-    <div class="recipe-title">${escapeHtml(r.title)}</div>
-    <div class="card-meta" style="margin-bottom:4px">${r.servings ? `${r.servings} servings` : ''}${r.estimatedCostPerServing ? ` &bull; <span style="color:#22c55e">${formatCost(r.estimatedCostPerServing)}/serving</span>` : ''}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div class="recipe-title" style="flex:1">${escapeHtml(r.title)}</div>
+      ${grade ? `<div style="font-size:1.1rem;font-weight:900;color:${grade.color};margin-left:8px;line-height:1">${grade.grade}</div>` : ''}
+    </div>
+    <div class="card-meta" style="margin-bottom:4px">
+      ${r.servings ? `${r.servings} svg` : ''}${r.cuisine ? ` &bull; ${escapeHtml(r.cuisine)}` : ''}${r.difficulty ? ` &bull; ${r.difficulty}` : ''}${r.estimatedCostPerServing ? ` &bull; <span style="color:#22c55e">${formatCost(r.estimatedCostPerServing)}/svg</span>` : ''}
+      ${timeParts ? `<br>${timeParts}` : ''}
+    </div>
     ${mp.calories !== undefined ? `
     <div class="recipe-macros">
       <div class="macro-item"><div class="macro-val">${mp.calories}</div><div class="macro-lbl">kcal</div></div>
@@ -1635,33 +1651,58 @@ function deleteRecipe(id) {
   state.recipes = state.recipes.filter(x => x.id !== id);
   saveState(); render(); deleteRemoteItem(id);
 }
-function openRecipeDetail(id) {
+function openRecipeDetail(id, adjServings) {
   const r = state.recipes.find(x => x.id === id);
   if (!r) return;
+  const sv = Math.max(1, adjServings || r.servings || 1);
+  const origSv = Math.max(1, r.servings || 1);
+  const mult = sv / origSv;
   const tags = r.tags || {};
   const tagBadges = TAG_KEYS.filter(t => tags[t]).map(t => `<span class="tag-badge tag-${t}">${TAG_LABELS[t]}</span>`).join('');
   const forBadges = [r.forP ? `<span class="badge badge-for-p">For P</span>` : '', r.forM ? `<span class="badge badge-for-m">For M</span>` : ''].filter(Boolean).join('');
+  const grade = r.healthGrade ? healthGrade(r.macrosPerServing) : null;
   const mp = r.macrosPerServing || {};
   const mt = r.macrosTotal || {};
+  const allergenBadges = (r.allergens||[]).map(a => `<span class="tag-badge" style="background:rgba(239,68,68,0.15);color:#ef4444">⚠ ${a}</span>`).join('');
+  const metaLine = [
+    r.cuisine ? escapeHtml(r.cuisine) : '',
+    r.difficulty ? r.difficulty : '',
+    r.prepTime ? `Prep: ${r.prepTime}` : '',
+    r.cookTime ? `Cook: ${r.cookTime}` : ''
+  ].filter(Boolean).join(' · ');
   const ingList = (r.ingredients||[]).map(i => `<li>${escapeHtml(i)}</li>`).join('');
   const procList = (r.procedure||[]).map((s,idx) => `<li><strong>Step ${idx+1}:</strong> ${escapeHtml(s)}</li>`).join('');
-  const macroFields = [['Calories','calories','kcal'],['Protein','protein','g'],['Carbs','carbs','g'],['Fat','fat','g'],['Fiber','fiber','g'],['Net Carbs','netCarbs','g']];
+  const macroFields = [['Calories','calories','kcal'],['Protein','protein','g'],['Carbs','carbs','g'],['Fat','fat','g'],['Fiber','fiber','g'],['Net Carbs','netCarbs','g'],['Sugar','sugar','g'],['Sodium','sodium','mg']];
   const macroRows = macroFields.map(([lbl,key,unit]) =>
-    `<tr><td><strong>${lbl}</strong></td><td>${mp[key] !== undefined ? mp[key]+unit : '-'}</td><td>${mt[key] !== undefined ? mt[key]+unit : '-'}</td></tr>`
+    `<tr><td><strong>${lbl}</strong></td><td>${mp[key] !== undefined ? Math.round(mp[key]*mult*10)/10+unit : '-'}</td><td>${mt[key] !== undefined ? Math.round(mt[key]*mult*10)/10+unit : '-'}</td></tr>`
   ).join('');
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
       <div class="modal modal-lg">
         <div class="modal-header">
-          <h2>${escapeHtml(r.title)}</h2>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:10px">
+              <h2 style="margin:0">${escapeHtml(r.title)}</h2>
+              ${grade ? `<span style="font-size:1.4rem;font-weight:900;color:${grade.color}" title="Health Grade">Grade ${grade.grade}</span>` : ''}
+            </div>
+            ${metaLine ? `<div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${metaLine}</div>` : ''}
+          </div>
           <button class="modal-close" onclick="closeModal()">&#x2715;</button>
         </div>
         <div class="modal-body">
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${tagBadges}${forBadges}</div>
-          ${r.servings ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">Servings: <strong>${r.servings}</strong></p>` : ''}
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${tagBadges}${forBadges}${allergenBadges}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <span style="font-size:0.85rem;color:var(--text-muted)">Servings:</span>
+            <button onclick="openRecipeDetail('${r.id}',${sv-1})" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:1rem" ${sv<=1?'disabled':''}>−</button>
+            <strong style="min-width:24px;text-align:center">${sv}</strong>
+            <button onclick="openRecipeDetail('${r.id}',${sv+1})" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:1rem">+</button>
+            ${sv !== origSv ? `<span style="font-size:0.78rem;color:var(--text-muted)">(original: ${origSv})</span>` : ''}
+            ${r.estimatedCostTotal ? `<span style="margin-left:auto;font-size:0.85rem;color:#22c55e;font-weight:700">Est. cost: ${formatCost(r.estimatedCostTotal * mult)}</span>` : ''}
+          </div>
           <div class="recipe-detail-section">
             <h3>Ingredients</h3>
             <ul class="ingredients-list">${ingList || '<li>No ingredients listed.</li>'}</ul>
+            ${(r.ingredients||[]).length ? `<button class="btn-secondary" style="margin-top:8px;font-size:0.8rem;padding:6px 12px" onclick="addRecipeToGrocery('${r.id}')">+ Add all to Grocery List</button>` : ''}
           </div>
           <div class="recipe-detail-section">
             <h3>Procedure</h3>
@@ -1672,32 +1713,37 @@ function openRecipeDetail(id) {
             <h3>Nutrition & Cost per Ingredient</h3>
             <div style="overflow-x:auto">
             <table class="builder-table">
-              <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Protein</th><th>Net Carbs</th><th>Est. Cost</th></tr></thead>
+              <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Net Carbs</th><th>Protein</th><th>Cost</th></tr></thead>
               <tbody>
-                ${r.structuredIngredients.map(bi => `<tr>
-                  <td>${escapeHtml(bi.name)}<div class="builder-row-unit">${bi.amount} ${bi.unit}</div></td>
-                  <td>${bi.cal}</td><td>${bi.fat}g</td><td>${bi.carbs}g</td><td>${bi.fiber}g</td>
-                  <td>${bi.pro}g</td><td style="font-weight:600;color:var(--sky)">${bi.netCarbs}g</td>
-                  <td style="color:#22c55e">${formatCost(bi.cost)}</td>
-                </tr>`).join('')}
-                ${(() => { const t = r.macrosTotal||{}; const c = r.estimatedCostTotal||0; return `<tr class="totals-row">
-                  <td>TOTAL</td><td>${t.calories||0}</td><td>${t.fat||0}g</td><td>${t.carbs||0}g</td><td>${t.fiber||0}g</td>
-                  <td>${t.protein||0}g</td><td>${t.netCarbs||0}g</td><td style="color:#22c55e">${formatCost(c)}</td>
-                </tr>`; })()}
-                ${(() => { const sv=Math.max(1,r.servings||1); const t=r.macrosTotal||{}; const c=r.estimatedCostTotal||0; return `<tr class="serving-row">
-                  <td>Per serving (÷${sv})</td><td>${Math.round((t.calories||0)/sv)}</td><td>${round1((t.fat||0)/sv)}g</td>
-                  <td>${round1((t.carbs||0)/sv)}g</td><td>${round1((t.fiber||0)/sv)}g</td><td>${round1((t.protein||0)/sv)}g</td>
-                  <td>${round1((t.netCarbs||0)/sv)}g</td><td style="color:#22c55e">${formatCost(c/sv)}</td>
-                </tr>`; })()}
+                ${r.structuredIngredients.map(bi => { const m2=mult; return `<tr>
+                  <td>${escapeHtml(bi.name)}<div class="builder-row-unit">${Math.round(bi.amount*m2*10)/10} ${bi.unit}</div></td>
+                  <td>${Math.round(bi.cal*m2)}</td><td>${round1(bi.fat*m2)}g</td><td>${round1(bi.carbs*m2)}g</td><td>${round1(bi.fiber*m2)}g</td>
+                  <td style="font-weight:600;color:var(--sky)">${round1(bi.netCarbs*m2)}g</td>
+                  <td>${round1(bi.pro*m2)}g</td><td style="color:#22c55e">${formatCost(bi.cost*m2)}</td>
+                </tr>`; }).join('')}
+                <tr class="totals-row">
+                  <td>TOTAL (${sv} svg)</td>
+                  <td>${Math.round((mt.calories||0)*mult)}</td><td>${round1((mt.fat||0)*mult)}g</td>
+                  <td>${round1((mt.carbs||0)*mult)}g</td><td>${round1((mt.fiber||0)*mult)}g</td>
+                  <td>${round1((mt.netCarbs||0)*mult)}g</td><td>${round1((mt.protein||0)*mult)}g</td>
+                  <td style="color:#22c55e">${formatCost((r.estimatedCostTotal||0)*mult)}</td>
+                </tr>
+                <tr class="serving-row">
+                  <td>Per serving</td>
+                  <td>${Math.round(mp.calories||0)}</td><td>${mp.fat||0}g</td>
+                  <td>${mp.carbs||0}g</td><td>${mp.fiber||0}g</td>
+                  <td>${mp.netCarbs||0}g</td><td>${mp.protein||0}g</td>
+                  <td style="color:#22c55e">${formatCost(r.estimatedCostPerServing||0)}</td>
+                </tr>
               </tbody>
             </table>
             </div>
-            <p class="net-carbs-note">Net Carbs = Total Carbs − Fiber. Est. cost based on approximate retail prices.</p>
+            <p class="net-carbs-note">Net Carbs = Carbs − Fiber. Macros scale with serving adjuster.</p>
           </div>` : (mp.calories !== undefined ? `
           <div class="recipe-detail-section">
-            <h3>Macros</h3>
+            <h3>Nutrition (${sv > 1 ? sv+' servings' : 'per serving'})</h3>
             <table class="macros-table">
-              <thead><tr><th>Nutrient</th><th>Per Serving</th><th>Total</th></tr></thead>
+              <thead><tr><th>Nutrient</th><th>Per Serving</th><th>Total (${sv} svg)</th></tr></thead>
               <tbody>${macroRows}</tbody>
             </table>
           </div>` : '')}
@@ -1709,6 +1755,24 @@ function openRecipeDetail(id) {
         </div>
       </div>
     </div>`;
+}
+
+function addRecipeToGrocery(id) {
+  const r = state.recipes.find(x => x.id === id);
+  if (!r) return;
+  const ing = r.ingredients || [];
+  let added = 0;
+  ing.forEach(line => {
+    const item = {
+      id: uid(), name: line, store: 'Any', checked: false,
+      owner: state.currentUser || 'shared', quantity: '', unit: '', addedAt: Date.now()
+    };
+    state.groceryItems.push(item);
+    pushItem(item, 'grocery');
+    added++;
+  });
+  saveLocalState();
+  alert(`Added ${added} ingredient${added !== 1 ? 's' : ''} to Grocery List!`);
 }
 function openEditRecipe(id) {
   const r = state.recipes.find(x => x.id === id);
@@ -1976,16 +2040,85 @@ function calcIngMacros(ing, grams) {
     fiber,
     pro:     round1(ing.pro * f),
     netCarbs: round1(Math.max(0, carbs - fiber)),
+    sugar:   round1((ing.sugar || 0) * f),
+    sodium:  Math.round((ing.sodium || 0) * f),
+    satFat:  round1((ing.satFat || 0) * f),
     cost:    Math.round(ing.cost * grams) / 100
   };
 }
 function round1(v) { return Math.round(v * 10) / 10; }
 function formatCost(c) { return '$' + c.toFixed(2); }
 
+// USDA FoodData Central search — returns ingredients in our format
+const _usdaCache = {};
+async function searchUSDA(q) {
+  const key = state.usdaApiKey || 'DEMO_KEY';
+  const cacheKey = q + '|' + key;
+  if (_usdaCache[cacheKey]) return _usdaCache[cacheKey];
+  try {
+    const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&api_key=${encodeURIComponent(key)}&dataType=Foundation,SR%20Legacy&pageSize=12`;
+    const resp = await fetch(url);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const results = (data.foods || []).map(f => {
+      const n = id => f.foodNutrients?.find(x => x.nutrientId === id)?.value || 0;
+      return {
+        id: 'usda_' + f.fdcId,
+        n: f.description.replace(/,?\s*(raw|cooked|whole|fresh)\s*$/i, '').trim().replace(/\b\w/g,c=>c.toUpperCase()),
+        nFull: f.description,
+        cal: Math.round(n(1008)), fat: round1(n(1004)), carbs: round1(n(1005)),
+        fiber: round1(n(1079)), pro: round1(n(1003)),
+        sugar: round1(n(2000)), sodium: Math.round(n(1093)), satFat: round1(n(1258)),
+        cost: 0.20, units: { oz:28.35, cup:240, tbsp:15, tsp:5, g:1 }, isUsda: true
+      };
+    });
+    _usdaCache[cacheKey] = results;
+    return results;
+  } catch { return []; }
+}
+
 function searchIngredients(q) {
   if (!q || q.length < 1) return [];
   const lower = q.toLowerCase();
-  return getAllIngredients().filter(i => i.n.toLowerCase().includes(lower)).slice(0, 12);
+  return getAllIngredients().filter(i => i.n.toLowerCase().includes(lower)).slice(0, 8);
+}
+
+// Allergen detection from ingredient list strings
+const ALLERGENS = {
+  gluten:    { label:'Gluten',    words:['wheat','flour','bread','pasta','barley','rye','oat','tortilla','cracker','cereal','biscuit'] },
+  dairy:     { label:'Dairy',     words:['milk','butter','cream','cheese','yogurt','whey','lactose','cheddar','mozzarella','parmesan'] },
+  eggs:      { label:'Eggs',      words:['egg','mayonnaise','mayo'] },
+  nuts:      { label:'Tree Nuts', words:['almond','cashew','walnut','pecan','pistachio','hazelnut','macadamia','nut butter'] },
+  peanuts:   { label:'Peanuts',   words:['peanut'] },
+  soy:       { label:'Soy',       words:['soy','tofu','edamame','miso','tempeh'] },
+  shellfish: { label:'Shellfish', words:['shrimp','crab','lobster','scallop','clam','oyster','mussel'] },
+  fish:      { label:'Fish',      words:['salmon','tuna','tilapia','cod','halibut','sardine','anchovy','fish'] },
+};
+function detectAllergens(ingredients) {
+  const text = (ingredients || []).join(' ').toLowerCase();
+  return Object.entries(ALLERGENS)
+    .filter(([,a]) => a.words.some(w => text.includes(w)))
+    .map(([,a]) => a.label);
+}
+
+// Health grade A-F based on per-serving macros
+function healthGrade(mp) {
+  if (!mp || mp.calories === undefined) return null;
+  let score = 70;
+  score += Math.min(20, (mp.fiber || 0) * 2);
+  score += Math.min(15, (mp.protein || 0) * 0.5);
+  if (mp.calories > 700) score -= 15;
+  else if (mp.calories > 500) score -= 8;
+  if ((mp.satFat || 0) > 10) score -= 12;
+  if ((mp.sugar || 0) > 30) score -= 12;
+  if ((mp.sodium || 0) > 1200) score -= 10;
+  if (mp.netCarbs > 60) score -= 8;
+  score = Math.max(0, Math.min(100, score));
+  if (score >= 85) return { grade:'A', color:'#22c55e' };
+  if (score >= 70) return { grade:'B', color:'#84cc16' };
+  if (score >= 55) return { grade:'C', color:'#eab308' };
+  if (score >= 40) return { grade:'D', color:'#f97316' };
+  return { grade:'F', color:'#ef4444' };
 }
 
 function showIngredientDbModal() {
@@ -2096,33 +2229,51 @@ function openRecipeBuilder() {
   showRecipeBuilderModal();
 }
 
+let _builderMeta = { prepTime:'', cookTime:'', cuisine:'', difficulty:'medium' };
+
 function showRecipeBuilderModal() {
   const totals = calcBuilderTotals();
   const servings = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  const savedTitle = document.getElementById('builder-title')?.value || '';
+  const savedProc  = document.getElementById('builder-procedure')?.value || '';
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
       <div class="modal modal-lg">
-        <div class="modal-header"><h2>Build Recipe</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-header"><h2>&#127859; Build Recipe</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
         <div class="modal-body">
-          <div class="form-row" style="margin-bottom:8px">
-            <div class="form-group"><label>Recipe Title</label><input id="builder-title" type="text" placeholder="e.g. Chocolate Milk"></div>
-            <div class="form-group" style="max-width:120px"><label>Servings</label><input id="builder-servings" type="number" min="1" value="${servings}" oninput="refreshBuilderTotals()"></div>
+          <div class="form-row" style="margin-bottom:6px">
+            <div class="form-group" style="flex:2"><label>Recipe Title</label><input id="builder-title" type="text" placeholder="e.g. Chocolate Protein Shake" value="${escapeHtml(savedTitle)}"></div>
+            <div class="form-group" style="max-width:100px"><label>Servings</label><input id="builder-servings" type="number" min="1" value="${servings}" oninput="refreshBuilderTotals()"></div>
           </div>
-          <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Add Ingredient</div>
+          <div class="form-row" style="margin-bottom:10px">
+            <div class="form-group"><label>Prep Time</label><input id="builder-prep" type="text" placeholder="e.g. 10 min" value="${escapeHtml(_builderMeta.prepTime)}"></div>
+            <div class="form-group"><label>Cook Time</label><input id="builder-cook" type="text" placeholder="e.g. 30 min" value="${escapeHtml(_builderMeta.cookTime)}"></div>
+            <div class="form-group"><label>Cuisine</label><input id="builder-cuisine" type="text" placeholder="e.g. American" value="${escapeHtml(_builderMeta.cuisine)}"></div>
+            <div class="form-group"><label>Difficulty</label>
+              <select id="builder-difficulty">
+                <option value="easy" ${_builderMeta.difficulty==='easy'?'selected':''}>Easy</option>
+                <option value="medium" ${_builderMeta.difficulty==='medium'?'selected':''}>Medium</option>
+                <option value="hard" ${_builderMeta.difficulty==='hard'?'selected':''}>Hard</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Add Ingredient
+            <span style="font-weight:400;text-transform:none;font-size:0.75rem;margin-left:8px">${state.usdaApiKey ? '&#10003; USDA live search active' : '&#128196; Add USDA key in Settings for 300K+ foods'}</span>
+          </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
             <div class="builder-search-wrap" style="flex:2;min-width:160px">
-              <input id="builder-search" type="text" placeholder="Search ingredient..." value="${escapeHtml(builderSearchQuery)}"
+              <input id="builder-search" type="text" placeholder="Type to search food..." value="${escapeHtml(builderSearchQuery)}"
                 oninput="onBuilderSearch(this.value)" autocomplete="off" style="width:100%">
               <div id="builder-suggestions" class="builder-suggestions" style="display:none"></div>
             </div>
-            <div class="form-group" style="flex:0 0 80px;margin:0"><label style="font-size:0.78rem">Amount</label><input id="builder-amount" type="number" min="0.1" step="0.1" value="1" style="width:100%"></div>
+            <div class="form-group" style="flex:0 0 75px;margin:0"><label style="font-size:0.78rem">Amount</label><input id="builder-amount" type="number" min="0.1" step="0.1" value="1" style="width:100%"></div>
             <div class="form-group" style="flex:0 0 90px;margin:0"><label style="font-size:0.78rem">Unit</label>
               <select id="builder-unit" style="width:100%">
                 <option value="g">g</option><option value="oz">oz</option><option value="lb">lb</option>
                 <option value="cup" selected>cup</option><option value="tbsp">tbsp</option><option value="tsp">tsp</option>
                 <option value="ml">ml</option><option value="fl_oz">fl oz</option><option value="each">each</option>
                 <option value="slice">slice</option><option value="clove">clove</option><option value="medium">medium</option>
-                <option value="scoop">scoop</option><option value="can">can</option>
+                <option value="scoop">scoop</option><option value="can">can</option><option value="stalk">stalk</option>
               </select>
             </div>
             <button class="btn-primary" style="padding:8px 16px;margin-bottom:1px" onclick="addToBuilder()">+ Add</button>
@@ -2130,7 +2281,7 @@ function showRecipeBuilderModal() {
           ${renderBuilderTable(totals, servings)}
           <div style="margin-top:14px">
             <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Procedure (optional)</div>
-            <textarea id="builder-procedure" style="min-height:80px;width:100%;box-sizing:border-box" placeholder="Add steps separated by new lines..."></textarea>
+            <textarea id="builder-procedure" style="min-height:80px;width:100%;box-sizing:border-box" placeholder="Add steps separated by new lines...">${escapeHtml(savedProc)}</textarea>
           </div>
           <div class="form-actions">
             <button class="btn-secondary" onclick="closeModal()">Cancel</button>
@@ -2139,18 +2290,19 @@ function showRecipeBuilderModal() {
         </div>
       </div>
     </div>`;
-  // Restore search input event
-  const si = document.getElementById('builder-search');
-  if (si) si.addEventListener('input', e => onBuilderSearch(e.target.value));
 }
 
 function renderBuilderTable(totals, servings) {
-  if (!builderIngredients.length) return `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:0.85rem">No ingredients added yet.</div>`;
+  if (!builderIngredients.length) return `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:0.85rem">Search and add ingredients above to start building.</div>`;
   const rows = builderIngredients.map((bi, idx) => `
     <tr>
       <td>${escapeHtml(bi.name)}<div class="builder-row-unit">${bi.amount} ${bi.unit}</div></td>
-      <td>${bi.cal}</td><td>${bi.fat}g</td><td>${bi.carbs}g</td><td>${bi.fiber}g</td>
-      <td>${bi.pro}g</td><td style="font-weight:600;color:var(--sky)">${bi.netCarbs}g</td>
+      <td>${bi.cal}</td><td>${bi.fat}g</td>
+      <td>${bi.carbs}g</td><td>${bi.fiber}g</td>
+      <td style="font-weight:600;color:var(--sky)">${bi.netCarbs}g</td>
+      <td>${bi.pro}g</td>
+      <td style="color:var(--text-muted);font-size:0.78rem">${bi.sugar||0}g</td>
+      <td style="color:var(--text-muted);font-size:0.78rem">${bi.sodium||0}mg</td>
       <td style="color:#22c55e">${formatCost(bi.cost)}</td>
       <td><button class="builder-remove-btn" onclick="removeFromBuilder(${idx})">&#x2715;</button></td>
     </tr>`).join('');
@@ -2158,29 +2310,37 @@ function renderBuilderTable(totals, servings) {
   const perRow = totals ? `
     <tr class="serving-row">
       <td>Per serving (÷${sv})</td>
-      <td>${Math.round(totals.cal/sv)}</td><td>${round1(totals.fat/sv)}g</td><td>${round1(totals.carbs/sv)}g</td>
-      <td>${round1(totals.fiber/sv)}g</td><td>${round1(totals.pro/sv)}g</td>
-      <td>${round1(totals.netCarbs/sv)}g</td><td>${formatCost(totals.cost/sv)}</td><td></td>
+      <td>${Math.round(totals.cal/sv)}</td><td>${round1(totals.fat/sv)}g</td>
+      <td>${round1(totals.carbs/sv)}g</td><td>${round1(totals.fiber/sv)}g</td>
+      <td style="font-weight:600;color:var(--sky)">${round1(totals.netCarbs/sv)}g</td>
+      <td>${round1(totals.pro/sv)}g</td>
+      <td style="font-size:0.78rem">${round1((totals.sugar||0)/sv)}g</td>
+      <td style="font-size:0.78rem">${Math.round((totals.sodium||0)/sv)}mg</td>
+      <td>${formatCost(totals.cost/sv)}</td><td></td>
     </tr>` : '';
   return `<div style="overflow-x:auto">
     <table class="builder-table">
-      <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Protein</th><th>Net Carbs</th><th>Est. Cost</th><th></th></tr></thead>
+      <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Net Carbs</th><th>Protein</th><th style="color:var(--text-muted)">Sugar</th><th style="color:var(--text-muted)">Sodium</th><th>Cost</th><th></th></tr></thead>
       <tbody>
         ${rows}
         <tr class="totals-row">
           <td>TOTAL</td>
-          <td>${totals.cal}</td><td>${totals.fat}g</td><td>${totals.carbs}g</td><td>${totals.fiber}g</td>
-          <td>${totals.pro}g</td><td>${totals.netCarbs}g</td><td>${formatCost(totals.cost)}</td><td></td>
+          <td>${totals.cal}</td><td>${totals.fat}g</td>
+          <td>${totals.carbs}g</td><td>${totals.fiber}g</td>
+          <td>${totals.netCarbs}g</td><td>${totals.pro}g</td>
+          <td style="font-size:0.78rem">${totals.sugar||0}g</td>
+          <td style="font-size:0.78rem">${totals.sodium||0}mg</td>
+          <td>${formatCost(totals.cost)}</td><td></td>
         </tr>
         ${perRow}
       </tbody>
     </table>
   </div>
-  <p class="net-carbs-note">Net Carbs = Total Carbs − Fiber. Does not account for sugar alcohols.</p>`;
+  <p class="net-carbs-note">Net Carbs = Carbs − Fiber. Sugar &amp; Sodium available for USDA foods and custom entries.</p>`;
 }
 
 function calcBuilderTotals() {
-  if (!builderIngredients.length) return { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, cost:0 };
+  if (!builderIngredients.length) return { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, sugar:0, sodium:0, cost:0 };
   return builderIngredients.reduce((acc, bi) => ({
     cal:     acc.cal     + bi.cal,
     fat:     round1(acc.fat     + bi.fat),
@@ -2188,19 +2348,44 @@ function calcBuilderTotals() {
     fiber:   round1(acc.fiber   + bi.fiber),
     pro:     round1(acc.pro     + bi.pro),
     netCarbs:round1(acc.netCarbs + bi.netCarbs),
+    sugar:   round1((acc.sugar||0) + (bi.sugar||0)),
+    sodium:  Math.round((acc.sodium||0) + (bi.sodium||0)),
     cost:    Math.round((acc.cost + bi.cost) * 100) / 100
-  }), { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, cost:0 });
+  }), { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, sugar:0, sodium:0, cost:0 });
 }
 
-function onBuilderSearch(q) {
+async function onBuilderSearch(q) {
   builderSearchQuery = q;
   builderSelectedIngId = null;
   const box = document.getElementById('builder-suggestions');
   if (!box) return;
-  const results = searchIngredients(q);
-  if (!results.length || !q) { box.style.display = 'none'; return; }
-  box.innerHTML = results.map(i => `<div class="builder-suggestion" onclick="selectBuilderIng('${i.id}','${escapeHtml(i.n)}')">${escapeHtml(i.n)}</div>`).join('');
+  if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  const local = searchIngredients(q);
+  box.innerHTML = (local.length ? local.map(i => `<div class="builder-suggestion" onclick="selectBuilderIng('${i.id}','${escapeHtml(i.n)}')">${escapeHtml(i.n)}</div>`).join('') : '') +
+    `<div class="builder-suggestion" style="color:var(--text-muted);font-style:italic;cursor:default;font-size:0.78rem">&#128269; Searching USDA database...</div>`;
   box.style.display = 'block';
+  // Add USDA results asynchronously
+  const usda = await searchUSDA(q);
+  if (!document.getElementById('builder-search') || document.getElementById('builder-search').value !== q) return;
+  const allResults = [
+    ...local,
+    ...usda.filter(u => !local.find(l => l.n.toLowerCase() === u.n.toLowerCase()))
+  ];
+  if (!allResults.length) { box.style.display = 'none'; return; }
+  box.innerHTML = allResults.map(i => {
+    const tag = i.isUsda ? `<span style="font-size:0.68rem;background:rgba(41,182,246,0.15);color:var(--sky);border-radius:3px;padding:1px 4px;margin-left:4px">USDA</span>` : '';
+    return `<div class="builder-suggestion" onclick="selectBuilderIngFull('${i.id}',${JSON.stringify(i).replace(/'/g,"\\'")})">${escapeHtml(i.n)}${tag}</div>`;
+  }).join('');
+  box.style.display = 'block';
+}
+
+function selectBuilderIngFull(id, ingObj) {
+  // Cache USDA ingredient so getIngById can find it
+  if (ingObj.isUsda && !getAllIngredients().find(x => x.id === id)) {
+    if (!state.customIngredients) state.customIngredients = [];
+    state.customIngredients.push(ingObj);
+  }
+  selectBuilderIng(id, ingObj.n);
 }
 
 function selectBuilderIng(id, name) {
@@ -2209,6 +2394,13 @@ function selectBuilderIng(id, name) {
   if (si) si.value = name;
   const box = document.getElementById('builder-suggestions');
   if (box) box.style.display = 'none';
+}
+
+function _saveBuilderFormState() {
+  _builderMeta.prepTime   = document.getElementById('builder-prep')?.value || _builderMeta.prepTime;
+  _builderMeta.cookTime   = document.getElementById('builder-cook')?.value || _builderMeta.cookTime;
+  _builderMeta.cuisine    = document.getElementById('builder-cuisine')?.value || _builderMeta.cuisine;
+  _builderMeta.difficulty = document.getElementById('builder-difficulty')?.value || _builderMeta.difficulty;
 }
 
 function addToBuilder() {
@@ -2223,25 +2415,14 @@ function addToBuilder() {
   builderIngredients.push({ ingId, name: ing.n, amount, unit, grams, ...m });
   builderSelectedIngId = null;
   builderSearchQuery = '';
-  const sv = parseInt(document.getElementById('builder-servings')?.value) || 1;
-  const titleVal = document.getElementById('builder-title')?.value || '';
-  const procVal = document.getElementById('builder-procedure')?.value || '';
+  _saveBuilderFormState();
   showRecipeBuilderModal();
-  // restore values user had typed
-  const ti = document.getElementById('builder-title'); if (ti) ti.value = titleVal;
-  const se = document.getElementById('builder-servings'); if (se) se.value = sv;
-  const pe = document.getElementById('builder-procedure'); if (pe) pe.value = procVal;
 }
 
 function removeFromBuilder(idx) {
-  const sv = parseInt(document.getElementById('builder-servings')?.value) || 1;
-  const titleVal = document.getElementById('builder-title')?.value || '';
-  const procVal = document.getElementById('builder-procedure')?.value || '';
+  _saveBuilderFormState();
   builderIngredients.splice(idx, 1);
   showRecipeBuilderModal();
-  const ti = document.getElementById('builder-title'); if (ti) ti.value = titleVal;
-  const se = document.getElementById('builder-servings'); if (se) se.value = sv;
-  const pe = document.getElementById('builder-procedure'); if (pe) pe.value = procVal;
 }
 
 function refreshBuilderTotals() {
@@ -2256,6 +2437,7 @@ function saveBuilderRecipe() {
   const title = document.getElementById('builder-title')?.value.trim();
   if (!title) { alert('Please enter a recipe title.'); return; }
   if (!builderIngredients.length) { alert('Please add at least one ingredient.'); return; }
+  _saveBuilderFormState();
   const servings = parseInt(document.getElementById('builder-servings')?.value) || 1;
   const procRaw = document.getElementById('builder-procedure')?.value.trim();
   const procedure = procRaw ? procRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
@@ -2267,30 +2449,39 @@ function saveBuilderRecipe() {
     carbs:    round1(totals.carbs / sv),
     fiber:    round1(totals.fiber / sv),
     protein:  round1(totals.pro / sv),
-    netCarbs: round1(totals.netCarbs / sv)
+    netCarbs: round1(totals.netCarbs / sv),
+    sugar:    round1((totals.sugar||0) / sv),
+    sodium:   Math.round((totals.sodium||0) / sv)
   };
   const macrosTotal = {
     calories: totals.cal, fat: totals.fat, carbs: totals.carbs,
-    fiber: totals.fiber, protein: totals.pro, netCarbs: totals.netCarbs
-  };
-  // Auto-detect tags
-  const tags = {
-    keto:             macrosPerServing.netCarbs < 10,
-    highProtein:      macrosPerServing.protein > 0.10 * macrosPerServing.calories,
-    lowCalorie:       macrosPerServing.calories < 400,
-    vegan: false, vegetarian: false, glutenFree: false, dairyFree: false, lowHistamine: false, antiInflammatory: false
+    fiber: totals.fiber, protein: totals.pro, netCarbs: totals.netCarbs,
+    sugar: totals.sugar||0, sodium: totals.sodium||0
   };
   const ingredients = builderIngredients.map(bi => `${bi.amount} ${bi.unit} ${bi.name}`);
+  const allergens = detectAllergens(ingredients);
+  const grade = healthGrade(macrosPerServing);
+  const tags = {
+    keto:        macrosPerServing.netCarbs < 10,
+    highProtein: macrosPerServing.protein > 0.10 * macrosPerServing.calories,
+    lowCalorie:  macrosPerServing.calories < 400,
+    vegan: false, vegetarian: false, glutenFree: !allergens.includes('Gluten'),
+    dairyFree: !allergens.includes('Dairy'), lowHistamine: false, antiInflammatory: false
+  };
   const recipe = {
     id: uid(), title, servings, ingredients, procedure,
     structuredIngredients: JSON.parse(JSON.stringify(builderIngredients)),
     macrosPerServing, macrosTotal,
     estimatedCostTotal: totals.cost,
     estimatedCostPerServing: Math.round(totals.cost / sv * 100) / 100,
+    allergens, healthGrade: grade?.grade || null,
+    prepTime: _builderMeta.prepTime, cookTime: _builderMeta.cookTime,
+    cuisine: _builderMeta.cuisine, difficulty: _builderMeta.difficulty,
     tags, notes: '', forP: false, forM: false, savedAt: Date.now()
   };
   state.recipes.push(recipe);
   builderIngredients = [];
+  _builderMeta = { prepTime:'', cookTime:'', cuisine:'', difficulty:'medium' };
   saveState(); closeModal(); render(); pushItem(recipe, 'recipe');
 }
 
@@ -2305,6 +2496,8 @@ function openSettings() {
   userLabel.style.color = state.currentUser === 'P' ? 'var(--p-dark)' : state.currentUser === 'M' ? 'var(--m-dark)' : 'var(--text-muted)';
   keyInput.value = state.geminiApiKey || '';
   modelSel.value = state.geminiModel || 'gemini-2.0-flash';
+  const usdaEl = document.getElementById('usda-key-input');
+  if (usdaEl) usdaEl.value = state.usdaApiKey || '';
   const suEl = document.getElementById('sync-url-input');
   const skEl = document.getElementById('sync-key-input');
   if (suEl) suEl.value = state.supabaseUrl || '';
@@ -2325,6 +2518,8 @@ function saveSettings() {
   const sk = document.getElementById('sync-key-input');
   if (k) state.geminiApiKey = k.value.trim();
   if (m) state.geminiModel = m.value || 'gemini-2.0-flash';
+  const uk = document.getElementById('usda-key-input');
+  if (uk) state.usdaApiKey = uk.value.trim();
   if (su) state.supabaseUrl = su.value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   if (sk) state.supabaseKey = sk.value.trim();
   saveLocalState();
@@ -2384,6 +2579,10 @@ document.getElementById('settings-panel').addEventListener('click', function(e) 
 });
 document.getElementById('show-hide-sync-btn').addEventListener('click', function() {
   const inp = document.getElementById('sync-key-input');
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+});
+document.getElementById('show-hide-usda-btn').addEventListener('click', function() {
+  const inp = document.getElementById('usda-key-input');
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
 });
 document.getElementById('test-sync-btn').addEventListener('click', async function() {
