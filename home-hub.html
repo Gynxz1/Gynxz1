@@ -682,12 +682,123 @@ let state = {
   currentUser: null,
   geminiApiKey: '',
   geminiModel: 'gemini-1.5-flash',
+  supabaseUrl: '',
+  supabaseKey: '',
   reminders: [],
   todos: [],
   groceryItems: [],
   customStores: [],
   recipes: []
 };
+
+// ========== SYNC ==========
+const SYNC_ITEM_TYPES = { reminders:'reminder', todos:'todo', groceryItems:'grocery', recipes:'recipe' };
+let syncPollInterval = null;
+let lastSyncTime = null;
+let syncStatus = 'idle'; // 'idle'|'syncing'|'ok'|'error'
+
+function isSyncEnabled() {
+  return !!(state.supabaseUrl && state.supabaseKey);
+}
+
+function syncHeaders() {
+  return {
+    'apikey': state.supabaseKey,
+    'Authorization': 'Bearer ' + state.supabaseKey,
+    'Content-Type': 'application/json'
+  };
+}
+
+function setSyncStatus(s) {
+  syncStatus = s;
+  renderSyncIndicator();
+}
+
+function renderSyncIndicator() {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  if (!isSyncEnabled()) { el.textContent = ''; return; }
+  const labels = { syncing:'syncing...', ok:'synced ' + (lastSyncTime ? lastSyncTime.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''), error:'sync error', idle:'' };
+  const colors = { syncing:'rgba(255,255,255,0.7)', ok:'rgba(255,255,255,0.7)', error:'#FFD600', idle:'' };
+  el.textContent = labels[syncStatus] || '';
+  el.style.color = colors[syncStatus] || '';
+}
+
+async function syncFromRemote() {
+  if (!isSyncEnabled()) return;
+  setSyncStatus('syncing');
+  try {
+    const resp = await fetch(state.supabaseUrl + '/rest/v1/hh_items?select=id,type,data&deleted=eq.false', {
+      headers: syncHeaders()
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    state.reminders   = rows.filter(r => r.type === 'reminder').map(r => r.data);
+    state.todos        = rows.filter(r => r.type === 'todo').map(r => r.data);
+    state.groceryItems = rows.filter(r => r.type === 'grocery').map(r => r.data);
+    state.recipes      = rows.filter(r => r.type === 'recipe').map(r => r.data);
+    const storeRows    = rows.filter(r => r.type === 'store');
+    if (storeRows.length > 0) state.customStores = storeRows.map(r => r.data.name).filter(Boolean);
+    saveLocalState();
+    lastSyncTime = new Date();
+    setSyncStatus('ok');
+    render();
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Sync from remote failed:', e.message);
+  }
+}
+
+async function pushItem(item, type) {
+  if (!isSyncEnabled()) return;
+  try {
+    await fetch(state.supabaseUrl + '/rest/v1/hh_items', {
+      method: 'POST',
+      headers: { ...syncHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ id: item.id, type, data: item, deleted: false })
+    });
+    lastSyncTime = new Date();
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Push item failed:', e.message);
+  }
+}
+
+async function deleteRemoteItem(id) {
+  if (!isSyncEnabled()) return;
+  try {
+    await fetch(state.supabaseUrl + '/rest/v1/hh_items?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: syncHeaders(),
+      body: JSON.stringify({ deleted: true })
+    });
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.warn('Remote delete failed:', e.message);
+  }
+}
+
+async function testSyncConnection(url, key) {
+  try {
+    const resp = await fetch(url + '/rest/v1/hh_items?select=id&limit=1', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    return resp.ok;
+  } catch(e) {
+    return false;
+  }
+}
+
+function startSyncPolling() {
+  if (syncPollInterval) clearInterval(syncPollInterval);
+  if (!isSyncEnabled()) return;
+  syncFromRemote();
+  syncPollInterval = setInterval(() => {
+    if (!document.hidden) syncFromRemote();
+  }, 30000);
+}
 
 const DEFAULT_STORES = ['Walmart','Costco','Aldi','Meijer','Kroger','Amazon'];
 let activeTab = 'reminders';
@@ -705,8 +816,12 @@ function loadState() {
     if (raw) state = { ...state, ...JSON.parse(raw) };
   } catch(e) {}
 }
+function saveLocalState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
+}
 function saveState() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  saveLocalState();
+  // Remote sync happens per-item via pushItem/deleteRemoteItem calls
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function escapeHtml(s) {
@@ -834,12 +949,12 @@ function renderReminderCard(r) {
 function setReminderFilter(k, v) { reminderFilters[k] = v; render(); }
 function toggleReminder(id) {
   const r = state.reminders.find(x => x.id === id);
-  if (r) { r.done = !r.done; saveState(); render(); }
+  if (r) { r.done = !r.done; saveState(); render(); pushItem(r, 'reminder'); }
 }
 function deleteReminder(id) {
   if (!confirm('Delete this reminder?')) return;
   state.reminders = state.reminders.filter(x => x.id !== id);
-  saveState(); render();
+  saveState(); render(); deleteRemoteItem(id);
 }
 function openAddReminder() { editingId = null; showReminderModal(null); }
 function openEditReminder(id) { editingId = id; showReminderModal(state.reminders.find(x => x.id === id)); }
@@ -899,7 +1014,7 @@ function saveReminder() {
   };
   if (editingId) state.reminders = state.reminders.map(x => x.id === editingId ? obj : x);
   else state.reminders.push(obj);
-  saveState(); closeModal(); render();
+  saveState(); closeModal(); render(); pushItem(obj, 'reminder');
 }
 
 // ========== TO-DO ==========
@@ -976,13 +1091,13 @@ function toggleTodo(id) {
   if (t) {
     t.done = !t.done;
     t.doneBy = t.done ? (state.currentUser||'?') : null;
-    saveState(); render();
+    saveState(); render(); pushItem(t, 'todo');
   }
 }
 function deleteTodo(id) {
   if (!confirm('Delete this task?')) return;
   state.todos = state.todos.filter(x => x.id !== id);
-  saveState(); render();
+  saveState(); render(); deleteRemoteItem(id);
 }
 function openAddTodo() { editingId = null; showTodoModal(null); }
 function openEditTodo(id) { editingId = id; showTodoModal(state.todos.find(x => x.id === id)); }
@@ -1066,7 +1181,7 @@ function saveTodo() {
   };
   if (editingId) state.todos = state.todos.map(x => x.id === editingId ? obj : x);
   else state.todos.push(obj);
-  saveState(); closeModal(); render();
+  saveState(); closeModal(); render(); pushItem(obj, 'todo');
 }
 
 // ========== GROCERY ==========
@@ -1119,7 +1234,7 @@ function renderGroceryCard(g) {
 function setGroceryFilter(k, v) { groceryFilters[k] = v; render(); }
 function toggleGrocery(id) {
   const g = state.groceryItems.find(x => x.id === id);
-  if (g) { g.purchased = !g.purchased; saveState(); render(); }
+  if (g) { g.purchased = !g.purchased; saveState(); render(); pushItem(g, 'grocery'); }
 }
 function toggleGroceryFromList(id) {
   const g = state.groceryItems.find(x => x.id === id);
@@ -1134,17 +1249,20 @@ function toggleGroceryFromList(id) {
       const nm = el.querySelector('.gli-name');
       if (nm) nm.style.textDecoration = g.purchased ? 'line-through' : '';
     }
+    pushItem(g, 'grocery');
   }
 }
 function deleteGrocery(id) {
   if (!confirm('Delete this item?')) return;
   state.groceryItems = state.groceryItems.filter(x => x.id !== id);
-  saveState(); render();
+  saveState(); render(); deleteRemoteItem(id);
 }
 function clearPurchased() {
   if (!confirm('Remove all purchased items?')) return;
+  const toDelete = state.groceryItems.filter(x => x.purchased).map(x => x.id);
   state.groceryItems = state.groceryItems.filter(x => !x.purchased);
   saveState(); render();
+  toDelete.forEach(id => deleteRemoteItem(id));
 }
 function openAddGrocery() { editingId = null; showGroceryModal(null); }
 function openEditGrocery(id) { editingId = id; showGroceryModal(state.groceryItems.find(x => x.id === id)); }
@@ -1224,6 +1342,7 @@ function saveGrocery() {
     storeVal = document.getElementById('groc-custom-store').value.trim();
     if (storeVal && !state.customStores.includes(storeVal)) {
       state.customStores.push(storeVal);
+      pushItem({ id: 'store-' + storeVal, name: storeVal }, 'store');
     }
   } else {
     storeVal = storeSelect.value;
@@ -1241,7 +1360,7 @@ function saveGrocery() {
   };
   if (editingId) state.groceryItems = state.groceryItems.map(x => x.id === editingId ? obj : x);
   else state.groceryItems.push(obj);
-  saveState(); closeModal(); render();
+  saveState(); closeModal(); render(); pushItem(obj, 'grocery');
 }
 function openGroceryList() {
   const items = state.groceryItems;
@@ -1362,7 +1481,7 @@ function setRecipeSearch(v) { recipeFilters.search = v; render(); }
 function deleteRecipe(id) {
   if (!confirm('Delete this recipe?')) return;
   state.recipes = state.recipes.filter(x => x.id !== id);
-  saveState(); render();
+  saveState(); render(); deleteRemoteItem(id);
 }
 function openRecipeDetail(id) {
   const r = state.recipes.find(x => x.id === id);
@@ -1647,9 +1766,10 @@ function saveRecipeFromPreview() {
   } else {
     state.recipes.push(pendingRecipe);
   }
+  const savedObj = pendingRecipe;
   pendingRecipe = null;
   editingId = null;
-  saveState(); closeModal(); render();
+  saveState(); closeModal(); render(); pushItem(savedObj, 'recipe');
 }
 
 // ========== SETTINGS ==========
@@ -1663,6 +1783,12 @@ function openSettings() {
   userLabel.style.color = state.currentUser === 'P' ? 'var(--p-dark)' : state.currentUser === 'M' ? 'var(--m-dark)' : 'var(--text-muted)';
   keyInput.value = state.geminiApiKey || '';
   modelSel.value = state.geminiModel || 'gemini-1.5-flash';
+  const suEl = document.getElementById('sync-url-input');
+  const skEl = document.getElementById('sync-key-input');
+  if (suEl) suEl.value = state.supabaseUrl || '';
+  if (skEl) skEl.value = state.supabaseKey || '';
+  const tr = document.getElementById('sync-test-result');
+  if (tr) { tr.textContent = ''; }
   panel.style.display = 'flex';
   panel.setAttribute('aria-hidden','false');
 }
@@ -1673,11 +1799,16 @@ function closeSettings() {
 function saveSettings() {
   const k = document.getElementById('api-key-input');
   const m = document.getElementById('model-select');
+  const su = document.getElementById('sync-url-input');
+  const sk = document.getElementById('sync-key-input');
   if (k) state.geminiApiKey = k.value.trim();
   if (m) state.geminiModel = m.value || 'gemini-1.5-flash';
-  saveState();
+  if (su) state.supabaseUrl = su.value.trim().replace(/\/$/, '');
+  if (sk) state.supabaseKey = sk.value.trim();
+  saveLocalState();
   closeSettings();
   render();
+  startSyncPolling(); // restart with new config
 }
 function toggleApiKeyVisibility() {
   const inp = document.getElementById('api-key-input');

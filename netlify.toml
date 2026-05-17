@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/"
+  to = "/home-hub.html"
+  status = 200
