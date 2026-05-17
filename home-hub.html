@@ -597,6 +597,27 @@ select.filter-select-input {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #8EB4D4; border-radius: 3px; }
 
+/* Recipe Builder */
+.builder-table { width:100%; border-collapse:collapse; font-size:0.8rem; margin-top:10px; }
+.builder-table th { background:var(--bg); color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; padding:5px 6px; text-align:right; border-bottom:2px solid var(--border); }
+.builder-table th:first-child { text-align:left; }
+.builder-table td { padding:5px 6px; border-bottom:1px solid var(--border); text-align:right; vertical-align:middle; }
+.builder-table td:first-child { text-align:left; font-weight:600; }
+.builder-table .totals-row td { background:var(--bg); font-weight:700; border-top:2px solid var(--border); color:var(--sky); }
+.builder-table .serving-row td { background:rgba(41,182,246,0.05); font-weight:600; color:var(--text-muted); font-size:0.75rem; }
+.builder-remove-btn { background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:0 4px; line-height:1; }
+.builder-search-wrap { position:relative; }
+.builder-suggestions { position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1.5px solid var(--border); border-top:none; border-radius:0 0 8px 8px; max-height:180px; overflow-y:auto; z-index:100; box-shadow:var(--shadow-md); }
+.builder-suggestion { padding:8px 12px; cursor:pointer; font-size:0.85rem; border-bottom:1px solid var(--border); }
+.builder-suggestion:last-child { border-bottom:none; }
+.builder-suggestion:hover, .builder-suggestion.active { background:var(--bg); color:var(--sky); }
+.builder-row-unit { color:var(--text-muted); font-size:0.75rem; }
+.net-carbs-note { font-size:0.75rem; color:var(--text-muted); margin-top:6px; }
+.cost-total { font-size:0.88rem; font-weight:700; color:#22c55e; margin-top:6px; }
+.ing-db-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.85rem; }
+.ing-db-macros { display:flex; gap:8px; flex-wrap:wrap; font-size:0.75rem; color:var(--text-muted); }
+.ing-db-macro-pill { background:var(--bg); border-radius:4px; padding:2px 6px; }
+
 /* Responsive */
 @media (max-width: 600px) {
   #header h1 { font-size: 1rem; }
@@ -704,8 +725,111 @@ let state = {
   todos: [],
   groceryItems: [],
   customStores: [],
-  recipes: []
+  recipes: [],
+  customIngredients: []
 };
+
+// Macros per 100g, cost per 100g in USD, units map = grams per unit
+const INGREDIENT_DB = [
+  // DAIRY & EGGS
+  { id:'whole_milk',    n:'Milk (Whole)',              cal:61,  fat:3.3, carbs:4.8,  fiber:0,    pro:3.2,  cost:0.10, units:{cup:244,tbsp:15,tsp:5,ml:1,oz:29.6,fl_oz:29.6} },
+  { id:'milk_2pct',     n:'Milk (2%)',                 cal:50,  fat:2.0, carbs:4.8,  fiber:0,    pro:3.4,  cost:0.10, units:{cup:244,tbsp:15,tsp:5,ml:1,oz:29.6} },
+  { id:'almond_milk',   n:'Almond Milk (unsweetened)', cal:15,  fat:1.2, carbs:0.3,  fiber:0.3,  pro:0.6,  cost:0.08, units:{cup:244,tbsp:15,ml:1,oz:29.6} },
+  { id:'oat_milk',      n:'Oat Milk',                  cal:45,  fat:1.5, carbs:7.0,  fiber:0.5,  pro:1.0,  cost:0.12, units:{cup:244,tbsp:15,ml:1,oz:29.6} },
+  { id:'butter',        n:'Butter',                    cal:717, fat:81,  carbs:0.1,  fiber:0,    pro:0.9,  cost:0.45, units:{tbsp:14.2,tsp:4.7,cup:227,oz:28.35,stick:113} },
+  { id:'cream_cheese',  n:'Cream Cheese',              cal:342, fat:34,  carbs:2.7,  fiber:0,    pro:6.2,  cost:0.38, units:{tbsp:15,oz:28.35,cup:232} },
+  { id:'cheddar',       n:'Cheddar Cheese',            cal:403, fat:33,  carbs:1.3,  fiber:0,    pro:25,   cost:0.60, units:{oz:28.35,cup:113,slice:20} },
+  { id:'mozzarella',    n:'Mozzarella',                cal:280, fat:22,  carbs:2.2,  fiber:0,    pro:19.4, cost:0.50, units:{oz:28.35,cup:112,slice:21} },
+  { id:'parmesan',      n:'Parmesan (grated)',         cal:431, fat:29,  carbs:4.1,  fiber:0,    pro:38,   cost:0.70, units:{tbsp:5,oz:28.35,cup:100} },
+  { id:'greek_yogurt',  n:'Greek Yogurt (plain)',      cal:97,  fat:5,   carbs:3.9,  fiber:0,    pro:9,    cost:0.25, units:{cup:245,tbsp:15,oz:28.35} },
+  { id:'heavy_cream',   n:'Heavy Cream',               cal:340, fat:36,  carbs:2.8,  fiber:0,    pro:2.1,  cost:0.30, units:{cup:238,tbsp:15,tsp:5,oz:29.6,ml:1} },
+  { id:'sour_cream',    n:'Sour Cream',                cal:193, fat:19,  carbs:4.6,  fiber:0,    pro:2.1,  cost:0.20, units:{cup:230,tbsp:14,oz:28.35} },
+  { id:'egg_large',     n:'Egg (large)',               cal:143, fat:9.5, carbs:0.7,  fiber:0,    pro:12.6, cost:0.25, units:{each:50,oz:28.35} },
+  { id:'egg_white',     n:'Egg White',                 cal:52,  fat:0.2, carbs:0.7,  fiber:0,    pro:10.9, cost:0.15, units:{each:33,cup:244,tbsp:15} },
+  // PROTEINS
+  { id:'chicken_breast',n:'Chicken Breast (raw)',      cal:120, fat:2.6, carbs:0,    fiber:0,    pro:22.5, cost:0.44, units:{oz:28.35,lb:453.6,each:150} },
+  { id:'ground_beef80', n:'Ground Beef (80/20, raw)',  cal:254, fat:20,  carbs:0,    fiber:0,    pro:17.2, cost:0.60, units:{oz:28.35,lb:453.6} },
+  { id:'ground_beef90', n:'Ground Beef (90/10, raw)',  cal:176, fat:10,  carbs:0,    fiber:0,    pro:20,   cost:0.75, units:{oz:28.35,lb:453.6} },
+  { id:'ground_turkey', n:'Ground Turkey (raw)',       cal:149, fat:8,   carbs:0,    fiber:0,    pro:19,   cost:0.55, units:{oz:28.35,lb:453.6} },
+  { id:'salmon',        n:'Salmon (raw)',              cal:208, fat:13,  carbs:0,    fiber:0,    pro:20,   cost:0.80, units:{oz:28.35,lb:453.6,fillet:170} },
+  { id:'tuna_canned',   n:'Tuna (canned in water)',   cal:108, fat:1.0, carbs:0,    fiber:0,    pro:24,   cost:0.30, units:{oz:28.35,can:142} },
+  { id:'shrimp',        n:'Shrimp (raw)',              cal:99,  fat:1.1, carbs:0.2,  fiber:0,    pro:21,   cost:0.70, units:{oz:28.35,lb:453.6} },
+  { id:'bacon',         n:'Bacon (cooked)',            cal:541, fat:42,  carbs:1.4,  fiber:0,    pro:37,   cost:0.70, units:{slice:8,oz:28.35} },
+  { id:'pork_loin',     n:'Pork Loin (raw)',           cal:143, fat:5.9, carbs:0,    fiber:0,    pro:21,   cost:0.40, units:{oz:28.35,lb:453.6} },
+  // GRAINS
+  { id:'white_rice',    n:'White Rice (cooked)',       cal:130, fat:0.3, carbs:28,   fiber:0.4,  pro:2.7,  cost:0.05, units:{cup:186,tbsp:12} },
+  { id:'brown_rice',    n:'Brown Rice (cooked)',       cal:112, fat:0.9, carbs:23,   fiber:1.8,  pro:2.6,  cost:0.06, units:{cup:195,tbsp:12} },
+  { id:'oats',          n:'Oats (rolled, dry)',        cal:389, fat:7,   carbs:66,   fiber:10.6, pro:17,   cost:0.10, units:{cup:81,tbsp:5,oz:28.35} },
+  { id:'flour_ap',      n:'All-Purpose Flour',         cal:364, fat:1,   carbs:76,   fiber:2.7,  pro:10,   cost:0.08, units:{cup:120,tbsp:8,tsp:2.6,oz:28.35} },
+  { id:'bread_white',   n:'White Bread',               cal:265, fat:3.2, carbs:49,   fiber:2.3,  pro:9,    cost:0.15, units:{slice:30,oz:28.35} },
+  { id:'bread_ww',      n:'Whole Wheat Bread',         cal:247, fat:3.4, carbs:41,   fiber:6,    pro:13,   cost:0.18, units:{slice:30,oz:28.35} },
+  { id:'pasta_dry',     n:'Pasta (dry)',               cal:371, fat:1.5, carbs:74,   fiber:3.2,  pro:13,   cost:0.12, units:{cup:100,oz:28.35} },
+  { id:'pasta_cooked',  n:'Pasta (cooked)',            cal:158, fat:1.0, carbs:30.9, fiber:1.8,  pro:5.8,  cost:0.05, units:{cup:140,oz:28.35} },
+  { id:'tortilla_flour',n:'Flour Tortilla (10-in)',    cal:290, fat:7,   carbs:48,   fiber:2.9,  pro:7.5,  cost:0.25, units:{each:73,oz:28.35} },
+  // VEGETABLES
+  { id:'broccoli',      n:'Broccoli (raw)',            cal:34,  fat:0.4, carbs:6.6,  fiber:2.6,  pro:2.8,  cost:0.15, units:{cup:91,oz:28.35,head:600} },
+  { id:'spinach',       n:'Spinach (raw)',             cal:23,  fat:0.4, carbs:3.6,  fiber:2.2,  pro:2.9,  cost:0.18, units:{cup:30,oz:28.35,bag:170} },
+  { id:'kale',          n:'Kale (raw)',                cal:49,  fat:0.9, carbs:8.8,  fiber:3.6,  pro:4.3,  cost:0.20, units:{cup:67,oz:28.35} },
+  { id:'tomato',        n:'Tomato',                    cal:18,  fat:0.2, carbs:3.9,  fiber:1.2,  pro:0.9,  cost:0.20, units:{cup:180,medium:123,oz:28.35} },
+  { id:'tomato_paste',  n:'Tomato Paste',              cal:82,  fat:0.5, carbs:18.9, fiber:4.1,  pro:4.3,  cost:0.12, units:{tbsp:16,can:170,oz:28.35} },
+  { id:'onion',         n:'Onion (raw)',               cal:40,  fat:0.1, carbs:9.3,  fiber:1.7,  pro:1.1,  cost:0.10, units:{cup:160,medium:110,oz:28.35,tbsp:10} },
+  { id:'garlic',        n:'Garlic (raw)',              cal:149, fat:0.5, carbs:33,   fiber:2.1,  pro:6.4,  cost:0.30, units:{clove:3,tsp:2.8,tbsp:9,oz:28.35} },
+  { id:'carrot',        n:'Carrot (raw)',              cal:41,  fat:0.2, carbs:9.6,  fiber:2.8,  pro:0.9,  cost:0.10, units:{cup:128,medium:61,oz:28.35} },
+  { id:'bell_pepper',   n:'Bell Pepper (red)',         cal:31,  fat:0.3, carbs:6,    fiber:2.1,  pro:1.0,  cost:0.40, units:{cup:92,medium:119,oz:28.35} },
+  { id:'mushroom',      n:'Mushrooms (raw)',           cal:22,  fat:0.3, carbs:3.3,  fiber:1,    pro:3.1,  cost:0.25, units:{cup:70,oz:28.35} },
+  { id:'potato',        n:'Potato (raw)',              cal:77,  fat:0.1, carbs:17,   fiber:2.2,  pro:2.1,  cost:0.08, units:{medium:213,cup:150,oz:28.35} },
+  { id:'sweet_potato',  n:'Sweet Potato (raw)',        cal:86,  fat:0.1, carbs:20,   fiber:3,    pro:1.6,  cost:0.12, units:{medium:130,cup:133,oz:28.35} },
+  { id:'cauliflower',   n:'Cauliflower (raw)',         cal:25,  fat:0.3, carbs:5,    fiber:2,    pro:2,    cost:0.18, units:{cup:107,head:600,oz:28.35} },
+  { id:'zucchini',      n:'Zucchini (raw)',            cal:17,  fat:0.3, carbs:3.1,  fiber:1,    pro:1.2,  cost:0.15, units:{cup:124,medium:196,oz:28.35} },
+  { id:'avocado',       n:'Avocado',                  cal:160, fat:15,  carbs:9,    fiber:7,    pro:2,    cost:0.50, units:{medium:200,cup:150,oz:28.35,half:100} },
+  { id:'cucumber',      n:'Cucumber (raw)',            cal:15,  fat:0.1, carbs:3.6,  fiber:0.5,  pro:0.6,  cost:0.15, units:{cup:119,medium:201,oz:28.35} },
+  { id:'romaine',       n:'Romaine Lettuce',           cal:17,  fat:0.3, carbs:3.3,  fiber:2.1,  pro:1.2,  cost:0.12, units:{cup:47,oz:28.35} },
+  { id:'celery',        n:'Celery (raw)',              cal:16,  fat:0.2, carbs:3,    fiber:1.6,  pro:0.7,  cost:0.10, units:{cup:101,stalk:40,oz:28.35} },
+  // FRUITS
+  { id:'banana',        n:'Banana',                    cal:89,  fat:0.3, carbs:23,   fiber:2.6,  pro:1.1,  cost:0.15, units:{medium:118,large:136,oz:28.35} },
+  { id:'apple',         n:'Apple',                     cal:52,  fat:0.2, carbs:14,   fiber:2.4,  pro:0.3,  cost:0.25, units:{medium:182,cup:125,oz:28.35} },
+  { id:'strawberries',  n:'Strawberries',              cal:32,  fat:0.3, carbs:7.7,  fiber:2,    pro:0.7,  cost:0.30, units:{cup:152,oz:28.35,each:12} },
+  { id:'blueberries',   n:'Blueberries',               cal:57,  fat:0.3, carbs:14,   fiber:2.4,  pro:0.7,  cost:0.45, units:{cup:148,oz:28.35,tbsp:9} },
+  { id:'lemon_juice',   n:'Lemon Juice',               cal:22,  fat:0.2, carbs:6.9,  fiber:0.3,  pro:0.4,  cost:0.20, units:{cup:244,tbsp:15,tsp:5} },
+  // OILS & FATS
+  { id:'olive_oil',     n:'Olive Oil',                 cal:884, fat:100, carbs:0,    fiber:0,    pro:0,    cost:0.50, units:{tbsp:13.5,tsp:4.5,cup:216,ml:1} },
+  { id:'coconut_oil',   n:'Coconut Oil',               cal:892, fat:100, carbs:0,    fiber:0,    pro:0,    cost:0.45, units:{tbsp:13.6,tsp:4.5,cup:218,ml:1} },
+  { id:'vegetable_oil', n:'Vegetable Oil',             cal:884, fat:100, carbs:0,    fiber:0,    pro:0,    cost:0.20, units:{tbsp:14,tsp:4.7,cup:224,ml:1} },
+  // CONDIMENTS
+  { id:'mayo',          n:'Mayonnaise',                cal:680, fat:75,  carbs:0.6,  fiber:0,    pro:1,    cost:0.20, units:{tbsp:14,cup:220,oz:28.35} },
+  { id:'ketchup',       n:'Ketchup',                   cal:112, fat:0.1, carbs:26,   fiber:0.3,  pro:1.3,  cost:0.08, units:{tbsp:17,cup:270,oz:28.35} },
+  { id:'soy_sauce',     n:'Soy Sauce',                 cal:53,  fat:0.1, carbs:4.9,  fiber:0.3,  pro:5.6,  cost:0.05, units:{tbsp:16,tsp:5,cup:255} },
+  { id:'hot_sauce',     n:'Hot Sauce',                 cal:35,  fat:0,   carbs:7.7,  fiber:0,    pro:1.5,  cost:0.05, units:{tbsp:15,tsp:5,cup:240} },
+  { id:'worcestershire',n:'Worcestershire Sauce',      cal:78,  fat:0,   carbs:19,   fiber:0,    pro:0,    cost:0.10, units:{tbsp:17,tsp:5.7} },
+  { id:'mustard',       n:'Mustard (yellow)',          cal:66,  fat:4,   carbs:5.9,  fiber:1.8,  pro:4.4,  cost:0.08, units:{tbsp:15,tsp:5,cup:240} },
+  // SWEETENERS
+  { id:'sugar_white',   n:'Sugar (white)',             cal:387, fat:0,   carbs:100,  fiber:0,    pro:0,    cost:0.07, units:{cup:200,tbsp:12,tsp:4,oz:28.35} },
+  { id:'brown_sugar',   n:'Brown Sugar',               cal:380, fat:0,   carbs:98,   fiber:0,    pro:0.1,  cost:0.08, units:{cup:200,tbsp:13,tsp:4.5,oz:28.35} },
+  { id:'honey',         n:'Honey',                     cal:304, fat:0,   carbs:82,   fiber:0.2,  pro:0.3,  cost:0.18, units:{tbsp:21,tsp:7,cup:340,oz:28.35} },
+  { id:'maple_syrup',   n:'Maple Syrup',               cal:260, fat:0.1, carbs:67,   fiber:0,    pro:0,    cost:0.30, units:{tbsp:20,tsp:7,cup:322,oz:28.35} },
+  { id:'stevia',        n:'Stevia (powder)',            cal:0,   fat:0,   carbs:0,    fiber:0,    pro:0,    cost:0.50, units:{tsp:0.5,tbsp:1.5,cup:48} },
+  // NUTS, SEEDS & BUTTERS
+  { id:'peanut_butter', n:'Peanut Butter',             cal:588, fat:50,  carbs:20,   fiber:6,    pro:25,   cost:0.25, units:{tbsp:16,cup:258,oz:28.35} },
+  { id:'almond_butter', n:'Almond Butter',             cal:614, fat:56,  carbs:18.8, fiber:10.5, pro:21,   cost:0.45, units:{tbsp:16,cup:258,oz:28.35} },
+  { id:'almonds',       n:'Almonds (raw)',              cal:579, fat:50,  carbs:22,   fiber:12.5, pro:21,   cost:0.55, units:{cup:143,oz:28.35,tbsp:9} },
+  { id:'walnuts',       n:'Walnuts',                   cal:654, fat:65,  carbs:14,   fiber:6.7,  pro:15,   cost:0.70, units:{cup:117,oz:28.35,tbsp:7.5} },
+  { id:'chia_seeds',    n:'Chia Seeds',                cal:486, fat:31,  carbs:42,   fiber:34,   pro:17,   cost:0.40, units:{tbsp:12,cup:163,oz:28.35} },
+  { id:'flaxseed',      n:'Flaxseed (ground)',         cal:534, fat:42,  carbs:29,   fiber:27,   pro:18,   cost:0.30, units:{tbsp:7,cup:149,oz:28.35} },
+  // LEGUMES
+  { id:'black_beans',   n:'Black Beans (canned)',      cal:132, fat:0.5, carbs:24,   fiber:8.7,  pro:8.9,  cost:0.12, units:{cup:172,oz:28.35} },
+  { id:'chickpeas',     n:'Chickpeas (canned)',        cal:164, fat:2.6, carbs:27,   fiber:7.6,  pro:8.9,  cost:0.12, units:{cup:164,oz:28.35} },
+  { id:'lentils',       n:'Lentils (cooked)',          cal:116, fat:0.4, carbs:20,   fiber:7.9,  pro:9,    cost:0.08, units:{cup:198,oz:28.35} },
+  // CHOCOLATE & COCOA
+  { id:'cocoa_powder',  n:'Cocoa Powder (unsweetened)',cal:228, fat:14,  carbs:58,   fiber:37,   pro:19,   cost:0.35, units:{tbsp:7.5,cup:86,oz:28.35} },
+  { id:'dark_choc',     n:'Dark Chocolate (70-85%)',   cal:598, fat:43,  carbs:46,   fiber:11,   pro:7.8,  cost:0.60, units:{oz:28.35,square:10,cup:168} },
+  { id:'choc_chips',    n:'Chocolate Chips (semi-sw)', cal:480, fat:27,  carbs:64,   fiber:4,    pro:5,    cost:0.40, units:{cup:168,tbsp:10,oz:28.35} },
+  // MISC
+  { id:'vanilla_ext',   n:'Vanilla Extract',           cal:288, fat:0.1, carbs:12.7, fiber:0,    pro:0.1,  cost:0.80, units:{tsp:4.2,tbsp:12.8,cup:208} },
+  { id:'baking_powder', n:'Baking Powder',             cal:53,  fat:0,   carbs:28,   fiber:0.1,  pro:0,    cost:0.20, units:{tsp:4,tbsp:12,cup:230} },
+  { id:'baking_soda',   n:'Baking Soda',               cal:0,   fat:0,   carbs:0,    fiber:0,    pro:0,    cost:0.10, units:{tsp:4.6,tbsp:13.8} },
+  { id:'salt',          n:'Salt',                      cal:0,   fat:0,   carbs:0,    fiber:0,    pro:0,    cost:0.02, units:{tsp:6,tbsp:18,cup:288} },
+  { id:'protein_powder',n:'Whey Protein Powder',       cal:370, fat:4,   carbs:6,    fiber:0,    pro:80,   cost:0.60, units:{scoop:30,cup:130,oz:28.35} },
+];
 
 // ========== SYNC ==========
 const SYNC_ITEM_TYPES = { reminders:'reminder', todos:'todo', groceryItems:'grocery', recipes:'recipe' };
@@ -833,6 +957,9 @@ let recipeFilters = { tags: [], search: '' };
 let recipeTabMode = 'url'; // url or paste
 let pendingRecipe = null;
 let editingId = null;
+let builderIngredients = []; // [{ingId,name,amount,unit,grams,cal,fat,carbs,fiber,pro,netCarbs,cost}]
+let builderSearchQuery = '';
+let builderSelectedIngId = null;
 
 function loadState() {
   try {
@@ -1460,6 +1587,7 @@ function renderRecipes() {
         ${recipeFilters.tags.length > 0 ? `<button class="filt-btn" onclick="clearRecipeTagFilters()">Clear</button>` : ''}
       </div>
     </div>
+    <button class="btn-secondary" onclick="showIngredientDbModal()" style="padding:8px 14px;font-size:0.82rem">Ingredient DB</button>
     <button class="add-btn" onclick="openAddRecipe()">+ Add Recipe</button>
     <div class="recipe-grid">`;
   if (items.length === 0) {
@@ -1480,7 +1608,7 @@ function renderRecipeCard(r) {
   const mp = r.macrosPerServing || {};
   return `<div class="card recipe-card" onclick="openRecipeDetail('${r.id}')">
     <div class="recipe-title">${escapeHtml(r.title)}</div>
-    <div class="card-meta" style="margin-bottom:4px">${r.servings ? `${r.servings} servings` : ''}</div>
+    <div class="card-meta" style="margin-bottom:4px">${r.servings ? `${r.servings} servings` : ''}${r.estimatedCostPerServing ? ` &bull; <span style="color:#22c55e">${formatCost(r.estimatedCostPerServing)}/serving</span>` : ''}</div>
     ${mp.calories !== undefined ? `
     <div class="recipe-macros">
       <div class="macro-item"><div class="macro-val">${mp.calories}</div><div class="macro-lbl">kcal</div></div>
@@ -1539,14 +1667,40 @@ function openRecipeDetail(id) {
             <h3>Procedure</h3>
             <ol class="procedure-list">${procList || '<li>No steps listed.</li>'}</ol>
           </div>
-          ${mp.calories !== undefined ? `
+          ${(r.structuredIngredients && r.structuredIngredients.length) ? `
+          <div class="recipe-detail-section">
+            <h3>Nutrition & Cost per Ingredient</h3>
+            <div style="overflow-x:auto">
+            <table class="builder-table">
+              <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Protein</th><th>Net Carbs</th><th>Est. Cost</th></tr></thead>
+              <tbody>
+                ${r.structuredIngredients.map(bi => `<tr>
+                  <td>${escapeHtml(bi.name)}<div class="builder-row-unit">${bi.amount} ${bi.unit}</div></td>
+                  <td>${bi.cal}</td><td>${bi.fat}g</td><td>${bi.carbs}g</td><td>${bi.fiber}g</td>
+                  <td>${bi.pro}g</td><td style="font-weight:600;color:var(--sky)">${bi.netCarbs}g</td>
+                  <td style="color:#22c55e">${formatCost(bi.cost)}</td>
+                </tr>`).join('')}
+                ${(() => { const t = r.macrosTotal||{}; const c = r.estimatedCostTotal||0; return `<tr class="totals-row">
+                  <td>TOTAL</td><td>${t.calories||0}</td><td>${t.fat||0}g</td><td>${t.carbs||0}g</td><td>${t.fiber||0}g</td>
+                  <td>${t.protein||0}g</td><td>${t.netCarbs||0}g</td><td style="color:#22c55e">${formatCost(c)}</td>
+                </tr>`; })()}
+                ${(() => { const sv=Math.max(1,r.servings||1); const t=r.macrosTotal||{}; const c=r.estimatedCostTotal||0; return `<tr class="serving-row">
+                  <td>Per serving (÷${sv})</td><td>${Math.round((t.calories||0)/sv)}</td><td>${round1((t.fat||0)/sv)}g</td>
+                  <td>${round1((t.carbs||0)/sv)}g</td><td>${round1((t.fiber||0)/sv)}g</td><td>${round1((t.protein||0)/sv)}g</td>
+                  <td>${round1((t.netCarbs||0)/sv)}g</td><td style="color:#22c55e">${formatCost(c/sv)}</td>
+                </tr>`; })()}
+              </tbody>
+            </table>
+            </div>
+            <p class="net-carbs-note">Net Carbs = Total Carbs − Fiber. Est. cost based on approximate retail prices.</p>
+          </div>` : (mp.calories !== undefined ? `
           <div class="recipe-detail-section">
             <h3>Macros</h3>
             <table class="macros-table">
               <thead><tr><th>Nutrient</th><th>Per Serving</th><th>Total</th></tr></thead>
               <tbody>${macroRows}</tbody>
             </table>
-          </div>` : ''}
+          </div>` : '')}
           ${r.notes ? `<div class="recipe-detail-section"><h3>Notes</h3><p style="font-size:0.88rem">${escapeHtml(r.notes)}</p></div>` : ''}
           <div class="form-actions">
             <button class="btn-secondary" onclick="closeModal()">Close</button>
@@ -1580,6 +1734,7 @@ function showRecipeInputModal() {
           <div class="modal-tabs">
             <button class="modal-tab ${recipeTabMode==='url'?'active':''}" onclick="switchRecipeTab('url')">From URL</button>
             <button class="modal-tab ${recipeTabMode==='paste'?'active':''}" onclick="switchRecipeTab('paste')">Paste Text</button>
+            <button class="modal-tab" onclick="closeModal();openRecipeBuilder()">Build by Ingredient</button>
           </div>
           <div id="recipe-input-area">
             ${recipeTabMode === 'url' ?
@@ -1794,6 +1949,349 @@ function saveRecipeFromPreview() {
   pendingRecipe = null;
   editingId = null;
   saveState(); closeModal(); render(); pushItem(savedObj, 'recipe');
+}
+
+// ========== INGREDIENT DATABASE & RECIPE BUILDER ==========
+const UNIT_DEFAULTS = { g:1, oz:28.35, lb:453.6, kg:1000, ml:1, l:1000, fl_oz:29.57, cup:240, tbsp:15, tsp:5, each:100, piece:100, slice:30, clove:3, scoop:30, can:400, bag:170, head:500, fillet:170, stick:113, half:100, medium:120, large:150, square:10 };
+
+function getAllIngredients() {
+  return [...INGREDIENT_DB, ...(state.customIngredients || [])];
+}
+function getIngById(id) {
+  return getAllIngredients().find(i => i.id === id);
+}
+function getGrams(ing, amount, unit) {
+  const u = unit.toLowerCase();
+  const ingGrams = ing.units && ing.units[u] != null ? ing.units[u] : (UNIT_DEFAULTS[u] || 100);
+  return amount * ingGrams;
+}
+function calcIngMacros(ing, grams) {
+  const f = grams / 100;
+  const carbs = round1(ing.carbs * f);
+  const fiber = round1(ing.fiber * f);
+  return {
+    cal:     Math.round(ing.cal * f),
+    fat:     round1(ing.fat * f),
+    carbs,
+    fiber,
+    pro:     round1(ing.pro * f),
+    netCarbs: round1(Math.max(0, carbs - fiber)),
+    cost:    Math.round(ing.cost * grams) / 100
+  };
+}
+function round1(v) { return Math.round(v * 10) / 10; }
+function formatCost(c) { return '$' + c.toFixed(2); }
+
+function searchIngredients(q) {
+  if (!q || q.length < 1) return [];
+  const lower = q.toLowerCase();
+  return getAllIngredients().filter(i => i.n.toLowerCase().includes(lower)).slice(0, 12);
+}
+
+function showIngredientDbModal() {
+  const all = getAllIngredients();
+  const rows = all.map((ing, idx) => {
+    const isCustom = !INGREDIENT_DB.find(i => i.id === ing.id);
+    return `<div class="ing-db-row">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:0.85rem">${escapeHtml(ing.n)}</div>
+        <div class="ing-db-macros">
+          <span class="ing-db-macro-pill">Cal: ${ing.cal}</span>
+          <span class="ing-db-macro-pill">Fat: ${ing.fat}g</span>
+          <span class="ing-db-macro-pill">Carbs: ${ing.carbs}g</span>
+          <span class="ing-db-macro-pill">Fiber: ${ing.fiber}g</span>
+          <span class="ing-db-macro-pill">Prot: ${ing.pro}g</span>
+          <span class="ing-db-macro-pill">Net: ${round1(ing.carbs-ing.fiber)}g</span>
+          <span class="ing-db-macro-pill" style="color:#22c55e">${formatCost(ing.cost)}/100g</span>
+        </div>
+      </div>
+      ${isCustom ? `<button class="builder-remove-btn" onclick="deleteCustomIngredient('${ing.id}')">&#x2715;</button>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h2>Ingredient Database (${all.length})</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          <button class="btn-secondary" style="margin-bottom:12px" onclick="showAddCustomIngredientModal()">+ Add Custom Ingredient</button>
+          <div style="max-height:60vh;overflow-y:auto">${rows}</div>
+          <div class="form-actions"><button class="btn-secondary" onclick="closeModal()">Close</button></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function showAddCustomIngredientModal() {
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal">
+        <div class="modal-header"><h2>Add Custom Ingredient</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">Enter values per 100g / 100ml.</p>
+          <div class="form-row">
+            <div class="form-group"><label>Name</label><input id="ci-name" type="text" placeholder="e.g. A2 Milk"></div>
+            <div class="form-group"><label>Cost per 100g (USD)</label><input id="ci-cost" type="number" step="0.01" min="0" placeholder="0.15"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Calories (kcal)</label><input id="ci-cal" type="number" min="0" placeholder="61"></div>
+            <div class="form-group"><label>Fat (g)</label><input id="ci-fat" type="number" min="0" step="0.1" placeholder="3.3"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Carbs (g)</label><input id="ci-carbs" type="number" min="0" step="0.1" placeholder="4.8"></div>
+            <div class="form-group"><label>Fiber (g)</label><input id="ci-fiber" type="number" min="0" step="0.1" placeholder="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Protein (g)</label><input id="ci-pro" type="number" min="0" step="0.1" placeholder="3.2"></div>
+            <div class="form-group"><label>Common units (optional)</label><input id="ci-units" type="text" placeholder='cup:244,tbsp:15'></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="showIngredientDbModal()">Back</button>
+            <button class="btn-primary" onclick="saveCustomIngredient()">Save Ingredient</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveCustomIngredient() {
+  const name = document.getElementById('ci-name')?.value.trim();
+  if (!name) { alert('Name is required'); return; }
+  const unitsRaw = document.getElementById('ci-units')?.value.trim();
+  let units = {};
+  if (unitsRaw) {
+    unitsRaw.split(',').forEach(pair => {
+      const [u, g] = pair.split(':');
+      if (u && g) units[u.trim()] = parseFloat(g.trim());
+    });
+  }
+  const ing = {
+    id: 'custom_' + uid(),
+    n: name,
+    cal:   parseFloat(document.getElementById('ci-cal')?.value)  || 0,
+    fat:   parseFloat(document.getElementById('ci-fat')?.value)  || 0,
+    carbs: parseFloat(document.getElementById('ci-carbs')?.value)|| 0,
+    fiber: parseFloat(document.getElementById('ci-fiber')?.value)|| 0,
+    pro:   parseFloat(document.getElementById('ci-pro')?.value)  || 0,
+    cost:  parseFloat(document.getElementById('ci-cost')?.value) || 0,
+    units
+  };
+  if (!state.customIngredients) state.customIngredients = [];
+  state.customIngredients.push(ing);
+  saveLocalState();
+  showIngredientDbModal();
+}
+
+function deleteCustomIngredient(id) {
+  if (!confirm('Remove this ingredient?')) return;
+  state.customIngredients = (state.customIngredients || []).filter(i => i.id !== id);
+  saveLocalState();
+  showIngredientDbModal();
+}
+
+// Builder functions
+function openRecipeBuilder() {
+  builderIngredients = [];
+  builderSearchQuery = '';
+  builderSelectedIngId = null;
+  showRecipeBuilderModal();
+}
+
+function showRecipeBuilderModal() {
+  const totals = calcBuilderTotals();
+  const servings = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h2>Build Recipe</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          <div class="form-row" style="margin-bottom:8px">
+            <div class="form-group"><label>Recipe Title</label><input id="builder-title" type="text" placeholder="e.g. Chocolate Milk"></div>
+            <div class="form-group" style="max-width:120px"><label>Servings</label><input id="builder-servings" type="number" min="1" value="${servings}" oninput="refreshBuilderTotals()"></div>
+          </div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Add Ingredient</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+            <div class="builder-search-wrap" style="flex:2;min-width:160px">
+              <input id="builder-search" type="text" placeholder="Search ingredient..." value="${escapeHtml(builderSearchQuery)}"
+                oninput="onBuilderSearch(this.value)" autocomplete="off" style="width:100%">
+              <div id="builder-suggestions" class="builder-suggestions" style="display:none"></div>
+            </div>
+            <div class="form-group" style="flex:0 0 80px;margin:0"><label style="font-size:0.78rem">Amount</label><input id="builder-amount" type="number" min="0.1" step="0.1" value="1" style="width:100%"></div>
+            <div class="form-group" style="flex:0 0 90px;margin:0"><label style="font-size:0.78rem">Unit</label>
+              <select id="builder-unit" style="width:100%">
+                <option value="g">g</option><option value="oz">oz</option><option value="lb">lb</option>
+                <option value="cup" selected>cup</option><option value="tbsp">tbsp</option><option value="tsp">tsp</option>
+                <option value="ml">ml</option><option value="fl_oz">fl oz</option><option value="each">each</option>
+                <option value="slice">slice</option><option value="clove">clove</option><option value="medium">medium</option>
+                <option value="scoop">scoop</option><option value="can">can</option>
+              </select>
+            </div>
+            <button class="btn-primary" style="padding:8px 16px;margin-bottom:1px" onclick="addToBuilder()">+ Add</button>
+          </div>
+          ${renderBuilderTable(totals, servings)}
+          <div style="margin-top:14px">
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Procedure (optional)</div>
+            <textarea id="builder-procedure" style="min-height:80px;width:100%;box-sizing:border-box" placeholder="Add steps separated by new lines..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveBuilderRecipe()">Save Recipe</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  // Restore search input event
+  const si = document.getElementById('builder-search');
+  if (si) si.addEventListener('input', e => onBuilderSearch(e.target.value));
+}
+
+function renderBuilderTable(totals, servings) {
+  if (!builderIngredients.length) return `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:0.85rem">No ingredients added yet.</div>`;
+  const rows = builderIngredients.map((bi, idx) => `
+    <tr>
+      <td>${escapeHtml(bi.name)}<div class="builder-row-unit">${bi.amount} ${bi.unit}</div></td>
+      <td>${bi.cal}</td><td>${bi.fat}g</td><td>${bi.carbs}g</td><td>${bi.fiber}g</td>
+      <td>${bi.pro}g</td><td style="font-weight:600;color:var(--sky)">${bi.netCarbs}g</td>
+      <td style="color:#22c55e">${formatCost(bi.cost)}</td>
+      <td><button class="builder-remove-btn" onclick="removeFromBuilder(${idx})">&#x2715;</button></td>
+    </tr>`).join('');
+  const sv = Math.max(1, servings);
+  const perRow = totals ? `
+    <tr class="serving-row">
+      <td>Per serving (÷${sv})</td>
+      <td>${Math.round(totals.cal/sv)}</td><td>${round1(totals.fat/sv)}g</td><td>${round1(totals.carbs/sv)}g</td>
+      <td>${round1(totals.fiber/sv)}g</td><td>${round1(totals.pro/sv)}g</td>
+      <td>${round1(totals.netCarbs/sv)}g</td><td>${formatCost(totals.cost/sv)}</td><td></td>
+    </tr>` : '';
+  return `<div style="overflow-x:auto">
+    <table class="builder-table">
+      <thead><tr><th>Ingredient</th><th>Cal</th><th>Fat</th><th>Carbs</th><th>Fiber</th><th>Protein</th><th>Net Carbs</th><th>Est. Cost</th><th></th></tr></thead>
+      <tbody>
+        ${rows}
+        <tr class="totals-row">
+          <td>TOTAL</td>
+          <td>${totals.cal}</td><td>${totals.fat}g</td><td>${totals.carbs}g</td><td>${totals.fiber}g</td>
+          <td>${totals.pro}g</td><td>${totals.netCarbs}g</td><td>${formatCost(totals.cost)}</td><td></td>
+        </tr>
+        ${perRow}
+      </tbody>
+    </table>
+  </div>
+  <p class="net-carbs-note">Net Carbs = Total Carbs − Fiber. Does not account for sugar alcohols.</p>`;
+}
+
+function calcBuilderTotals() {
+  if (!builderIngredients.length) return { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, cost:0 };
+  return builderIngredients.reduce((acc, bi) => ({
+    cal:     acc.cal     + bi.cal,
+    fat:     round1(acc.fat     + bi.fat),
+    carbs:   round1(acc.carbs   + bi.carbs),
+    fiber:   round1(acc.fiber   + bi.fiber),
+    pro:     round1(acc.pro     + bi.pro),
+    netCarbs:round1(acc.netCarbs + bi.netCarbs),
+    cost:    Math.round((acc.cost + bi.cost) * 100) / 100
+  }), { cal:0, fat:0, carbs:0, fiber:0, pro:0, netCarbs:0, cost:0 });
+}
+
+function onBuilderSearch(q) {
+  builderSearchQuery = q;
+  builderSelectedIngId = null;
+  const box = document.getElementById('builder-suggestions');
+  if (!box) return;
+  const results = searchIngredients(q);
+  if (!results.length || !q) { box.style.display = 'none'; return; }
+  box.innerHTML = results.map(i => `<div class="builder-suggestion" onclick="selectBuilderIng('${i.id}','${escapeHtml(i.n)}')">${escapeHtml(i.n)}</div>`).join('');
+  box.style.display = 'block';
+}
+
+function selectBuilderIng(id, name) {
+  builderSelectedIngId = id;
+  const si = document.getElementById('builder-search');
+  if (si) si.value = name;
+  const box = document.getElementById('builder-suggestions');
+  if (box) box.style.display = 'none';
+}
+
+function addToBuilder() {
+  const ingId = builderSelectedIngId;
+  if (!ingId) { alert('Please select an ingredient from the dropdown.'); return; }
+  const ing = getIngById(ingId);
+  if (!ing) return;
+  const amount = parseFloat(document.getElementById('builder-amount')?.value) || 1;
+  const unit   = document.getElementById('builder-unit')?.value || 'g';
+  const grams  = getGrams(ing, amount, unit);
+  const m      = calcIngMacros(ing, grams);
+  builderIngredients.push({ ingId, name: ing.n, amount, unit, grams, ...m });
+  builderSelectedIngId = null;
+  builderSearchQuery = '';
+  const sv = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  const titleVal = document.getElementById('builder-title')?.value || '';
+  const procVal = document.getElementById('builder-procedure')?.value || '';
+  showRecipeBuilderModal();
+  // restore values user had typed
+  const ti = document.getElementById('builder-title'); if (ti) ti.value = titleVal;
+  const se = document.getElementById('builder-servings'); if (se) se.value = sv;
+  const pe = document.getElementById('builder-procedure'); if (pe) pe.value = procVal;
+}
+
+function removeFromBuilder(idx) {
+  const sv = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  const titleVal = document.getElementById('builder-title')?.value || '';
+  const procVal = document.getElementById('builder-procedure')?.value || '';
+  builderIngredients.splice(idx, 1);
+  showRecipeBuilderModal();
+  const ti = document.getElementById('builder-title'); if (ti) ti.value = titleVal;
+  const se = document.getElementById('builder-servings'); if (se) se.value = sv;
+  const pe = document.getElementById('builder-procedure'); if (pe) pe.value = procVal;
+}
+
+function refreshBuilderTotals() {
+  // Lightweight re-render of just the table area without resetting inputs
+  const totals = calcBuilderTotals();
+  const sv = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  const tableWrap = document.querySelector('.builder-table')?.closest('div[style*="overflow-x"]');
+  if (tableWrap) tableWrap.outerHTML = renderBuilderTable(totals, sv);
+}
+
+function saveBuilderRecipe() {
+  const title = document.getElementById('builder-title')?.value.trim();
+  if (!title) { alert('Please enter a recipe title.'); return; }
+  if (!builderIngredients.length) { alert('Please add at least one ingredient.'); return; }
+  const servings = parseInt(document.getElementById('builder-servings')?.value) || 1;
+  const procRaw = document.getElementById('builder-procedure')?.value.trim();
+  const procedure = procRaw ? procRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  const totals = calcBuilderTotals();
+  const sv = Math.max(1, servings);
+  const macrosPerServing = {
+    calories: Math.round(totals.cal / sv),
+    fat:      round1(totals.fat / sv),
+    carbs:    round1(totals.carbs / sv),
+    fiber:    round1(totals.fiber / sv),
+    protein:  round1(totals.pro / sv),
+    netCarbs: round1(totals.netCarbs / sv)
+  };
+  const macrosTotal = {
+    calories: totals.cal, fat: totals.fat, carbs: totals.carbs,
+    fiber: totals.fiber, protein: totals.pro, netCarbs: totals.netCarbs
+  };
+  // Auto-detect tags
+  const tags = {
+    keto:             macrosPerServing.netCarbs < 10,
+    highProtein:      macrosPerServing.protein > 0.10 * macrosPerServing.calories,
+    lowCalorie:       macrosPerServing.calories < 400,
+    vegan: false, vegetarian: false, glutenFree: false, dairyFree: false, lowHistamine: false, antiInflammatory: false
+  };
+  const ingredients = builderIngredients.map(bi => `${bi.amount} ${bi.unit} ${bi.name}`);
+  const recipe = {
+    id: uid(), title, servings, ingredients, procedure,
+    structuredIngredients: JSON.parse(JSON.stringify(builderIngredients)),
+    macrosPerServing, macrosTotal,
+    estimatedCostTotal: totals.cost,
+    estimatedCostPerServing: Math.round(totals.cost / sv * 100) / 100,
+    tags, notes: '', forP: false, forM: false, savedAt: Date.now()
+  };
+  state.recipes.push(recipe);
+  builderIngredients = [];
+  saveState(); closeModal(); render(); pushItem(recipe, 'recipe');
 }
 
 // ========== SETTINGS ==========
