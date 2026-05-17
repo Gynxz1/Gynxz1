@@ -661,9 +661,9 @@ select.filter-select-input {
       <div class="form-group">
         <label>Gemini Model</label>
         <select id="model-select">
-          <option value="gemini-1.5-flash">gemini-1.5-flash (Free &mdash; Recommended)</option>
-          <option value="gemini-2.0-flash">gemini-2.0-flash (Free &mdash; Fastest)</option>
-          <option value="gemini-1.5-pro">gemini-1.5-pro (Paid &mdash; Most accurate)</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash (Free &mdash; Recommended)</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash (Free &mdash; Most capable)</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro (Paid &mdash; Best accuracy)</option>
         </select>
       </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
@@ -697,7 +697,7 @@ const STORE_KEY = 'homeHub_v1';
 let state = {
   currentUser: null,
   geminiApiKey: '',
-  geminiModel: 'gemini-1.5-flash',
+  geminiModel: 'gemini-2.0-flash',
   supabaseUrl: '',
   supabaseKey: '',
   reminders: [],
@@ -1653,8 +1653,8 @@ Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=prot
   }
   const fullPrompt = `${systemPrompt}\n\nRecipe content:\n${recipeContent}`;
   try {
-    const model = state.geminiModel || 'gemini-1.5-flash';
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.geminiApiKey}`, {
+    const model = state.geminiModel || 'gemini-2.0-flash';
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${state.geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1806,7 +1806,7 @@ function openSettings() {
   userLabel.textContent = state.currentUser || 'Not set';
   userLabel.style.color = state.currentUser === 'P' ? 'var(--p-dark)' : state.currentUser === 'M' ? 'var(--m-dark)' : 'var(--text-muted)';
   keyInput.value = state.geminiApiKey || '';
-  modelSel.value = state.geminiModel || 'gemini-1.5-flash';
+  modelSel.value = state.geminiModel || 'gemini-2.0-flash';
   const suEl = document.getElementById('sync-url-input');
   const skEl = document.getElementById('sync-key-input');
   if (suEl) suEl.value = state.supabaseUrl || '';
@@ -1826,7 +1826,7 @@ function saveSettings() {
   const su = document.getElementById('sync-url-input');
   const sk = document.getElementById('sync-key-input');
   if (k) state.geminiApiKey = k.value.trim();
-  if (m) state.geminiModel = m.value || 'gemini-1.5-flash';
+  if (m) state.geminiModel = m.value || 'gemini-2.0-flash';
   if (su) state.supabaseUrl = su.value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   if (sk) state.supabaseKey = sk.value.trim();
   saveLocalState();
