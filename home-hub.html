@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Home Hub</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0D1B2A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Home Hub">
+<link rel="apple-touch-icon" href="/icon-192.svg">
 <style>
 :root {
   /* Core palette */
@@ -597,6 +603,59 @@ select.filter-select-input {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #8EB4D4; border-radius: 3px; }
 
+/* ===== DASHBOARD ===== */
+.dash-greeting { font-size: 1.5rem; font-weight: 800; margin-bottom: 2px; letter-spacing: -0.02em; }
+.dash-date { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px; }
+.dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+.dash-stat { background: var(--card-bg); border-radius: var(--radius); padding: 14px 10px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: var(--transition); }
+.dash-stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.dash-stat-val { font-size: 1.8rem; font-weight: 900; color: var(--sky); line-height: 1; }
+.dash-stat-lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.dash-section { background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.dash-section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 10px; }
+.dash-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.dash-row:last-child { border-bottom: none; }
+/* Progress bars */
+.progress-wrap { margin-bottom: 10px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 3px; font-weight: 600; }
+.progress-track { height: 9px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+/* ===== MEAL PLANNER ===== */
+.meal-plan-scroll { overflow-x: auto; padding-bottom: 8px; }
+.meal-plan-grid { display: flex; gap: 8px; min-width: max-content; }
+.meal-day-col { display: flex; flex-direction: column; gap: 6px; width: 140px; }
+.meal-day-header { text-align: center; font-size: 0.78rem; font-weight: 700; padding: 8px 4px; border-radius: 10px; background: var(--bg); }
+.meal-day-header.today { background: linear-gradient(135deg,var(--sky),#0288d1); color: #fff; }
+.meal-slot { background: var(--card-bg); border: 1.5px dashed var(--border); border-radius: 10px; padding: 8px; cursor: pointer; min-height: 60px; display: flex; flex-direction: column; transition: var(--transition); }
+.meal-slot:hover { border-color: var(--sky); background: var(--sky-bg); }
+.meal-slot.filled { border-style: solid; border-color: var(--sky); background: var(--sky-bg); }
+.meal-slot-icon { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
+.meal-slot-name { font-size: 0.78rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+.meal-slot-cal { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.meal-day-total { font-size: 0.72rem; text-align: center; padding: 5px 4px; color: var(--text-muted); font-weight: 600; background: var(--bg); border-radius: 8px; }
+.week-summary { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; }
+.week-summary-stat { flex: 1; min-width: 100px; background: var(--card-bg); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); text-align: center; }
+.week-summary-val { font-size: 1.4rem; font-weight: 900; }
+.week-summary-lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ===== BOTTOM NAV (mobile) ===== */
+@media (max-width: 640px) {
+  #tabs { position: fixed; bottom: 0; top: auto !important; left: 0; right: 0; z-index: 200; border-top: 1.5px solid var(--border); border-bottom: none !important; box-shadow: 0 -4px 20px rgba(0,0,0,0.14); padding-bottom: env(safe-area-inset-bottom); background: #fff; }
+  #main { padding-bottom: 90px; }
+  .tab-btn { font-size: 0.65rem; padding: 6px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tab-icon { font-size: 1.25rem; line-height: 1; }
+  .dash-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Fade-in animation for tab content */
+#main > * { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ===== NUTRITION GOALS badge ===== */
+.goal-over { color: #ef4444 !important; }
+
 /* Recipe Builder */
 .builder-table { width:100%; border-collapse:collapse; font-size:0.8rem; margin-top:10px; }
 .builder-table th { background:var(--bg); color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; padding:5px 6px; text-align:right; border-bottom:2px solid var(--border); }
@@ -652,10 +711,12 @@ select.filter-select-input {
 </div>
 
 <div id="tabs">
-  <button class="tab-btn active" onclick="switchTab('reminders')">&#9200; Reminders</button>
-  <button class="tab-btn" onclick="switchTab('todos')">&#9989; To-Do</button>
-  <button class="tab-btn" onclick="switchTab('grocery')">&#128722; Grocery</button>
-  <button class="tab-btn" onclick="switchTab('recipes')">&#127859; Recipes</button>
+  <button class="tab-btn active" onclick="switchTab('home')"><span class="tab-icon">&#127968;</span>Home</button>
+  <button class="tab-btn" onclick="switchTab('reminders')"><span class="tab-icon">&#9200;</span>Reminders</button>
+  <button class="tab-btn" onclick="switchTab('todos')"><span class="tab-icon">&#9989;</span>To-Do</button>
+  <button class="tab-btn" onclick="switchTab('grocery')"><span class="tab-icon">&#128722;</span>Grocery</button>
+  <button class="tab-btn" onclick="switchTab('meals')"><span class="tab-icon">&#128197;</span>Meals</button>
+  <button class="tab-btn" onclick="switchTab('recipes')"><span class="tab-icon">&#127859;</span>Recipes</button>
 </div>
 
 <div id="main"></div>
@@ -687,6 +748,17 @@ select.filter-select-input {
           <option value="gemini-2.5-pro">gemini-2.5-pro (Paid &mdash; Best accuracy)</option>
         </select>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Daily Nutrition Goals</div>
+      <div class="form-row">
+        <div class="form-group"><label>Calories (kcal)</label><input type="number" id="goal-calories" placeholder="e.g. 2000" min="0"></div>
+        <div class="form-group"><label>Protein (g)</label><input type="number" id="goal-protein" placeholder="e.g. 150" min="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Net Carbs (g)</label><input type="number" id="goal-netcarbs" placeholder="e.g. 100" min="0"></div>
+        <div class="form-group"><label>Fat (g)</label><input type="number" id="goal-fat" placeholder="e.g. 65" min="0"></div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
       <div class="form-group">
         <label>USDA Food Database Key <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">free at fdc.nal.usda.gov &mdash; search 300K+ foods</span></label>
         <div class="input-with-toggle">
@@ -734,7 +806,9 @@ let state = {
   customStores: [],
   recipes: [],
   customIngredients: [],
-  usdaApiKey: ''
+  usdaApiKey: '',
+  mealPlan: {},
+  dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 }
 };
 
 // Macros per 100g, cost per 100g in USD, units map = grams per unit
@@ -887,6 +961,9 @@ async function syncFromRemote() {
     state.recipes      = rows.filter(r => r.type === 'recipe').map(r => r.data);
     const storeRows    = rows.filter(r => r.type === 'store');
     if (storeRows.length > 0) state.customStores = storeRows.map(r => r.data.name).filter(Boolean);
+    rows.filter(r => r.type === 'mealplan').forEach(r => { if (r.data.dateKey) state.mealPlan[r.data.dateKey] = r.data.slots; });
+    const goalRow = rows.find(r => r.type === 'dailygoals');
+    if (goalRow) state.dailyGoals = { ...state.dailyGoals, ...goalRow.data };
     saveLocalState();
     lastSyncTime = new Date();
     setSyncStatus('ok');
@@ -957,7 +1034,8 @@ function startSyncPolling() {
 }
 
 const DEFAULT_STORES = ['Walmart','Costco','Aldi','Meijer','Kroger','Amazon'];
-let activeTab = 'reminders';
+let activeTab = 'home';
+let mealPlanWeekOffset = 0;
 let reminderFilters = { owner: 'mine', status: 'active' };
 let todoFilters = { owner: 'mine', priority: 'all', assignee: 'all' };
 let groceryFilters = { owner: 'all' };
@@ -1024,7 +1102,7 @@ function updateUserButtons() {
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const tabs = ['reminders','todos','grocery','recipes'];
+    const tabs = ['home','reminders','todos','grocery','meals','recipes'];
     b.classList.toggle('active', tabs[i] === tab);
   });
   render();
@@ -1033,10 +1111,14 @@ function switchTab(tab) {
 // ========== RENDER ==========
 function render() {
   const main = document.getElementById('main');
-  if (activeTab === 'reminders') main.innerHTML = renderReminders();
-  else if (activeTab === 'todos') main.innerHTML = renderTodos();
-  else if (activeTab === 'grocery') main.innerHTML = renderGrocery();
-  else if (activeTab === 'recipes') main.innerHTML = renderRecipes();
+  const content =
+    activeTab === 'home'      ? renderHome() :
+    activeTab === 'reminders' ? renderReminders() :
+    activeTab === 'todos'     ? renderTodos() :
+    activeTab === 'grocery'   ? renderGrocery() :
+    activeTab === 'meals'     ? renderMealPlan() :
+    activeTab === 'recipes'   ? renderRecipes() : '';
+  main.innerHTML = content;
 }
 
 // ========== OWNER FILTER HELPERS ==========
@@ -1045,6 +1127,305 @@ function matchesOwnerFilter(item, filterVal) {
   if (filterVal === 'mine') return item.owner === cu || item.owner === 'Shared';
   if (filterVal === 'shared') return item.owner === 'Shared';
   return true; // 'all'
+}
+
+// ========== HELPERS ==========
+function toDateKey(d) { return d.toISOString().split('T')[0]; }
+function getWeekDays(offset) {
+  const today = new Date(); const days = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(today); d.setDate(today.getDate() + offset*7 + i); days.push(d); }
+  return days;
+}
+function calcDayNutrition(dateKey) {
+  const slots = state.mealPlan[dateKey] || {};
+  return Object.values(slots).reduce((a, m) => {
+    if (!m?.macros) return a;
+    return { calories: a.calories+(m.macros.calories||0), protein: a.protein+(m.macros.protein||0),
+      fat: a.fat+(m.macros.fat||0), netCarbs: a.netCarbs+(m.macros.netCarbs||0), fiber: a.fiber+(m.macros.fiber||0) };
+  }, { calories:0, protein:0, fat:0, netCarbs:0, fiber:0 });
+}
+
+// ========== DASHBOARD ==========
+const MEAL_SLOT_KEYS  = ['breakfast','lunch','dinner','snack'];
+const MEAL_SLOT_ICONS = { breakfast:'🌅', lunch:'☀️', dinner:'🌙', snack:'🍎' };
+const MEAL_SLOT_LBLS  = { breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner', snack:'Snack' };
+
+function renderHome() {
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const greetIcon = h < 5 ? '🌙' : h < 12 ? '🌅' : h < 17 ? '☀️' : '🌙';
+  const DAY_N = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MON_N = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const user = state.currentUser || '?';
+  const todayKey = toDateKey(now);
+  const todayMeals = state.mealPlan[todayKey] || {};
+  const todayNutr  = calcDayNutrition(todayKey);
+  const goals = state.dailyGoals || {};
+  const hasGoals = goals.calories > 0;
+
+  const activeReminders = state.reminders.filter(r => !r.done && !r.dismissed).length;
+  const activeTodos     = state.todos.filter(t => !t.done).length;
+  const groceryLeft     = state.groceryItems.filter(g => !g.checked).length;
+
+  const upcomingReminders = state.reminders.filter(r => {
+    if (r.done || r.dismissed) return false;
+    if (!r.dueDate) return false;
+    const d = new Date(r.dueDate); return d <= new Date(now.getTime() + 7*24*3600000);
+  }).sort((a,b) => new Date(a.dueDate)-new Date(b.dueDate)).slice(0,3);
+
+  const myTodos = state.todos.filter(t => !t.done &&
+    (!state.currentUser || t.owner === state.currentUser || t.owner === 'Shared' || t.owner === 'shared')
+  ).slice(0,3);
+
+  const bar = (label, val, goal, color) => {
+    if (!goal) return '';
+    const pct = Math.min(100, Math.round(val/goal*100));
+    const over = pct >= 100;
+    return `<div class="progress-wrap">
+      <div class="progress-label">
+        <span>${label}</span>
+        <span class="${over?'goal-over':''}">${val} / ${goal}${label.includes('g')||label.includes('mg')?'':'}'${label==='Calories'?'kcal':''}}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${over?'#ef4444':color}"></div></div>
+    </div>`;
+  };
+
+  let html = `<div>
+    <div class="dash-greeting">${greeting}, ${user}! <span>${greetIcon}</span></div>
+    <div class="dash-date">${DAY_N[now.getDay()]}, ${MON_N[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}</div>
+
+    <div class="dash-stats">
+      <div class="dash-stat" onclick="switchTab('reminders')">
+        <div class="dash-stat-val">${activeReminders}</div><div class="dash-stat-lbl">⏰ Reminders</div>
+      </div>
+      <div class="dash-stat" onclick="switchTab('todos')">
+        <div class="dash-stat-val">${activeTodos}</div><div class="dash-stat-lbl">✅ To-Dos</div>
+      </div>
+      <div class="dash-stat" onclick="switchTab('grocery')">
+        <div class="dash-stat-val">${groceryLeft}</div><div class="dash-stat-lbl">🛒 Grocery</div>
+      </div>
+      <div class="dash-stat" onclick="switchTab('recipes')">
+        <div class="dash-stat-val">${state.recipes.length}</div><div class="dash-stat-lbl">🍽 Recipes</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-section">
+        <div class="dash-section-title">Today's Meals <button onclick="switchTab('meals')" style="background:none;border:none;cursor:pointer;color:var(--sky);font-size:0.75rem;float:right;font-weight:700">Plan week →</button></div>
+        ${MEAL_SLOT_KEYS.map(slot => {
+          const meal = todayMeals[slot];
+          return `<div class="dash-row">
+            <span style="font-size:1.1rem">${MEAL_SLOT_ICONS[slot]}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.82rem;font-weight:${meal?'600':'400'};color:${meal?'var(--text)':'var(--text-muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                ${meal ? escapeHtml(meal.name) : MEAL_SLOT_LBLS[slot]+' — not set'}
+              </div>
+              ${meal?.macros ? `<div style="font-size:0.7rem;color:var(--text-muted)">${meal.macros.calories||0} kcal · ${meal.macros.protein||0}g prot · ${meal.macros.netCarbs||0}g nc</div>` : ''}
+            </div>
+            <button onclick="switchTab('meals')" style="background:none;border:none;cursor:pointer;color:var(--sky);font-size:0.72rem;white-space:nowrap">${meal?'Edit':'+ Add'}</button>
+          </div>`;
+        }).join('')}
+        ${hasGoals && todayNutr.calories > 0 ? `
+          <div style="margin-top:12px">
+            ${bar('Calories', todayNutr.calories, goals.calories, 'var(--sky)')}
+            ${bar('Protein (g)', todayNutr.protein, goals.protein, '#22c55e')}
+            ${goals.netCarbs ? bar('Net Carbs (g)', todayNutr.netCarbs, goals.netCarbs, 'var(--yellow)') : ''}
+          </div>` : hasGoals ? `<p style="font-size:0.8rem;color:var(--text-muted);margin-top:10px">Add meals to the planner to track nutrition</p>` :
+          `<button class="btn-secondary" style="margin-top:12px;font-size:0.78rem;padding:6px 12px" onclick="openSettings()">Set nutrition goals in Settings</button>`}
+      </div>
+
+      <div class="dash-section">
+        <div class="dash-section-title">Upcoming Reminders</div>
+        ${upcomingReminders.length ? upcomingReminders.map(r => {
+          const d = new Date(r.dueDate);
+          const isToday = d.toDateString() === now.toDateString();
+          const isPast  = d < now;
+          const label = isPast ? '<span style="color:#ef4444;font-size:0.7rem">Overdue</span>' :
+                        isToday ? '<span style="color:var(--yellow);font-size:0.7rem">Today</span>' :
+                        `<span style="color:var(--text-muted);font-size:0.7rem">${d.toLocaleDateString([],{month:'short',day:'numeric'})}</span>`;
+          return `<div class="dash-row">
+            <span style="font-size:1rem">⏰</span>
+            <div style="flex:1"><div style="font-size:0.85rem;font-weight:600">${escapeHtml(r.title)}</div>${label}</div>
+            ${ownerBadge(r.owner)}
+          </div>`;
+        }).join('') + `<button class="btn-secondary" style="margin-top:10px;font-size:0.78rem;padding:6px 12px;width:100%" onclick="switchTab('reminders')">See all</button>`
+        : `<div style="color:var(--text-muted);font-size:0.85rem">All clear! No upcoming reminders.</div>
+           <button class="btn-secondary" style="margin-top:10px;font-size:0.78rem;padding:6px 12px;width:100%" onclick="switchTab('reminders')">+ Add reminder</button>`}
+      </div>
+
+      <div class="dash-section">
+        <div class="dash-section-title">Active To-Dos</div>
+        ${myTodos.length ? myTodos.map(t => `<div class="dash-row">
+          <button onclick="toggleTodoDone('${t.id}')" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:20px;height:20px;min-width:20px;cursor:pointer"></button>
+          <div style="flex:1;font-size:0.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(t.title)}</div>
+          ${ownerBadge(t.owner)}
+        </div>`).join('') +
+        (activeTodos > 3 ? `<div style="font-size:0.78rem;color:var(--text-muted);padding:6px 0">+${activeTodos-3} more</div>` : '') +
+        `<button class="btn-secondary" style="margin-top:10px;font-size:0.78rem;padding:6px 12px;width:100%" onclick="switchTab('todos')">See all</button>`
+        : `<div style="color:var(--text-muted);font-size:0.85rem">All done! 🎉</div>
+           <button class="btn-secondary" style="margin-top:10px;font-size:0.78rem;padding:6px 12px;width:100%" onclick="switchTab('todos')">+ Add to-do</button>`}
+      </div>
+    </div></div>`;
+  return html;
+}
+
+// ========== MEAL PLANNER ==========
+function renderMealPlan() {
+  const days = getWeekDays(mealPlanWeekOffset);
+  const todayKey = toDateKey(new Date());
+  const DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const goals = state.dailyGoals || {};
+
+  const weekNutr = days.reduce((a, d) => {
+    const n = calcDayNutrition(toDateKey(d));
+    return { calories: a.calories+n.calories, protein: a.protein+n.protein, netCarbs: a.netCarbs+n.netCarbs, fat: a.fat+n.fat };
+  }, { calories:0, protein:0, netCarbs:0, fat:0 });
+  const daysPlanned = days.filter(d => Object.keys(state.mealPlan[toDateKey(d)]||{}).length).length;
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <h2 style="margin:0;font-size:1.1rem;font-weight:800">&#128197; Weekly Meal Plan</h2>
+        <div style="font-size:0.8rem;color:var(--text-muted)">${days[0].toLocaleDateString([],{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString([],{month:'short',day:'numeric'})}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="mealPlanWeekOffset--;render()" style="padding:6px 10px">&#8592; Prev</button>
+        <button class="btn-secondary" onclick="mealPlanWeekOffset=0;render()" style="padding:6px 10px">Today</button>
+        <button class="btn-secondary" onclick="mealPlanWeekOffset++;render()" style="padding:6px 10px">Next &#8594;</button>
+        <button class="btn-primary" onclick="sendWeekToGrocery()" style="padding:6px 12px">&#128722; Send to Grocery</button>
+      </div>
+    </div>
+    <div class="meal-plan-scroll"><div class="meal-plan-grid">`;
+
+  days.forEach(day => {
+    const key = toDateKey(day);
+    const isToday = key === todayKey;
+    const meals = state.mealPlan[key] || {};
+    const dn = calcDayNutrition(key);
+    const hasMeals = Object.values(meals).some(Boolean);
+    const calPct = goals.calories && dn.calories ? Math.min(100, Math.round(dn.calories/goals.calories*100)) : 0;
+
+    html += `<div class="meal-day-col">
+      <div class="meal-day-header ${isToday?'today':''}">
+        <div>${DAY_SHORT[day.getDay()]}</div>
+        <div style="font-size:0.95rem;font-weight:800">${day.getDate()}</div>
+      </div>`;
+
+    MEAL_SLOT_KEYS.forEach(slot => {
+      const meal = meals[slot];
+      html += `<div class="meal-slot ${meal?'filled':''}" onclick="openMealSlotModal('${key}','${slot}')">
+        <div class="meal-slot-icon">${MEAL_SLOT_ICONS[slot]} ${MEAL_SLOT_LBLS[slot]}</div>`;
+      if (meal) {
+        html += `<div class="meal-slot-name">${escapeHtml(meal.name)}</div>`;
+        if (meal.macros?.calories) html += `<div class="meal-slot-cal">${meal.macros.calories} kcal</div>`;
+        html += `<button onclick="event.stopPropagation();clearMealSlot('${key}','${slot}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:0.65rem;padding:2px 0;margin-top:auto;align-self:flex-end">✕ clear</button>`;
+      } else {
+        html += `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:auto">+ Add</div>`;
+      }
+      html += `</div>`;
+    });
+
+    if (hasMeals) {
+      html += `<div class="meal-day-total">
+        ${dn.calories} kcal
+        ${calPct ? `<div style="background:var(--border);border-radius:99px;height:4px;margin-top:3px"><div style="background:${calPct>=100?'#ef4444':'var(--sky)'};width:${calPct}%;height:100%;border-radius:99px"></div></div>` : ''}
+        <div style="font-size:0.62rem;margin-top:2px">${Math.round(dn.protein)}g prot</div>
+      </div>`;
+    }
+    html += `</div>`;
+  });
+
+  html += `</div></div>`;
+
+  if (daysPlanned > 0) {
+    html += `<div class="week-summary">
+      <div class="week-summary-stat"><div class="week-summary-val" style="color:var(--sky)">${Math.round(weekNutr.calories).toLocaleString()}</div><div class="week-summary-lbl">Week Calories</div></div>
+      <div class="week-summary-stat"><div class="week-summary-val" style="color:#22c55e">${Math.round(weekNutr.protein)}g</div><div class="week-summary-lbl">Total Protein</div></div>
+      <div class="week-summary-stat"><div class="week-summary-val" style="color:var(--yellow)">${Math.round(weekNutr.netCarbs)}g</div><div class="week-summary-lbl">Net Carbs</div></div>
+      <div class="week-summary-stat"><div class="week-summary-val" style="color:var(--text-muted)">${daysPlanned}/7</div><div class="week-summary-lbl">Days Planned</div></div>
+    </div>`;
+  } else {
+    html += `<div class="card" style="text-align:center;padding:32px;margin-top:16px">
+      <div style="font-size:2.5rem;margin-bottom:8px">📅</div>
+      <div style="font-weight:700;margin-bottom:6px">Start planning your week</div>
+      <div style="color:var(--text-muted);font-size:0.88rem">Click any slot above to assign a meal or recipe. When done, send the whole week's ingredients to your Grocery List.</div>
+    </div>`;
+  }
+  return html;
+}
+
+function openMealSlotModal(dateKey, slot) {
+  const current = (state.mealPlan[dateKey] || {})[slot];
+  const recipes = state.recipes;
+  const recipeRows = recipes.map(r => {
+    const mp = r.macrosPerServing || {};
+    const macros = { calories: mp.calories||0, protein: mp.protein||0, fat: mp.fat||0, netCarbs: mp.netCarbs||0, fiber: mp.fiber||0 };
+    return `<div class="builder-suggestion" onclick='assignMealSlot("${dateKey}","${slot}",${JSON.stringify({type:'recipe',id:r.id,name:r.title,macros})})'>
+      <div style="font-weight:600">${escapeHtml(r.title)}</div>
+      ${mp.calories ? `<div style="font-size:0.72rem;color:var(--text-muted)">${mp.calories} kcal · ${mp.protein||0}g prot · ${mp.netCarbs||0}g nc</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h2>${MEAL_SLOT_ICONS[slot]} ${MEAL_SLOT_LBLS[slot]}</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Custom meal name</label>
+            <div style="display:flex;gap:8px">
+              <input id="custom-meal-name" type="text" placeholder="e.g. Overnight Oats, Leftover soup..." value="${current && !current.id ? escapeHtml(current.name) : ''}">
+              <button class="btn-primary" style="white-space:nowrap" onclick="assignMealSlot('${dateKey}','${slot}',{type:'custom',name:document.getElementById('custom-meal-name').value.trim()})">Save</button>
+            </div>
+          </div>
+          ${recipes.length ? `
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Or pick from saved recipes</div>
+            <div style="max-height:280px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px">${recipeRows}</div>
+          ` : `<div style="color:var(--text-muted);font-size:0.85rem">No recipes saved yet. <button class="btn-secondary" style="font-size:0.8rem;padding:4px 10px;margin-left:6px" onclick="closeModal();switchTab('recipes')">Add recipes</button></div>`}
+          <div class="form-actions" style="margin-top:14px">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            ${current ? `<button class="btn-secondary" style="color:#ef4444" onclick="clearMealSlot('${dateKey}','${slot}');closeModal()">Clear Slot</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function assignMealSlot(dateKey, slot, meal) {
+  if (!meal || !meal.name) return;
+  if (!state.mealPlan[dateKey]) state.mealPlan[dateKey] = {};
+  state.mealPlan[dateKey][slot] = meal;
+  saveLocalState();
+  pushItem({ id: 'mealplan_' + dateKey, dateKey, slots: state.mealPlan[dateKey] }, 'mealplan');
+  closeModal(); render();
+}
+
+function clearMealSlot(dateKey, slot) {
+  if (!state.mealPlan[dateKey]) return;
+  delete state.mealPlan[dateKey][slot];
+  if (!Object.keys(state.mealPlan[dateKey]).length) delete state.mealPlan[dateKey];
+  saveLocalState(); render();
+}
+
+function sendWeekToGrocery() {
+  const days = getWeekDays(mealPlanWeekOffset);
+  const seen = new Set(); let added = 0;
+  days.forEach(day => {
+    Object.values(state.mealPlan[toDateKey(day)] || {}).forEach(meal => {
+      if (!meal || meal.type !== 'recipe') return;
+      const recipe = state.recipes.find(r => r.id === meal.id);
+      if (!recipe) return;
+      (recipe.ingredients || []).forEach(ing => {
+        if (seen.has(ing)) return; seen.add(ing);
+        const item = { id: uid(), name: ing, store: 'Any', checked: false, owner: state.currentUser||'shared', addedAt: Date.now() };
+        state.groceryItems.push(item); pushItem(item, 'grocery'); added++;
+      });
+    });
+  });
+  saveLocalState();
+  if (added) { alert(`Added ${added} items to your Grocery List!`); switchTab('grocery'); }
+  else alert('No recipe ingredients to add. Assign saved recipes (not custom names) to meal slots first.');
 }
 
 // ========== REMINDERS ==========
@@ -2498,6 +2879,11 @@ function openSettings() {
   modelSel.value = state.geminiModel || 'gemini-2.0-flash';
   const usdaEl = document.getElementById('usda-key-input');
   if (usdaEl) usdaEl.value = state.usdaApiKey || '';
+  const g = state.dailyGoals || {};
+  ['calories','protein','netcarbs','fat'].forEach(k => {
+    const el = document.getElementById('goal-' + k);
+    if (el) el.value = g[k === 'netcarbs' ? 'netCarbs' : k] || '';
+  });
   const suEl = document.getElementById('sync-url-input');
   const skEl = document.getElementById('sync-key-input');
   if (suEl) suEl.value = state.supabaseUrl || '';
@@ -2520,6 +2906,13 @@ function saveSettings() {
   if (m) state.geminiModel = m.value || 'gemini-2.0-flash';
   const uk = document.getElementById('usda-key-input');
   if (uk) state.usdaApiKey = uk.value.trim();
+  state.dailyGoals = {
+    calories: parseInt(document.getElementById('goal-calories')?.value) || 0,
+    protein:  parseInt(document.getElementById('goal-protein')?.value)  || 0,
+    netCarbs: parseInt(document.getElementById('goal-netcarbs')?.value) || 0,
+    fat:      parseInt(document.getElementById('goal-fat')?.value)      || 0
+  };
+  pushItem({ id: 'dailygoals', ...state.dailyGoals }, 'dailygoals');
   if (su) state.supabaseUrl = su.value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   if (sk) state.supabaseKey = sk.value.trim();
   saveLocalState();
@@ -2557,6 +2950,9 @@ function closeModalOnBackdrop(event) {
 }
 
 // ========== INIT ==========
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
 loadState();
 if (!state.currentUser) {
   document.getElementById('who-overlay').style.display = 'flex';
