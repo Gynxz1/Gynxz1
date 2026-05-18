@@ -735,6 +735,11 @@ select.filter-select-input {
         <div id="settings-user-label" style="font-size:1.1rem;font-weight:700;padding:4px 0"></div>
       </div>
       <div class="form-group">
+        <label>Profile Theme <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">color scheme for this profile</span></label>
+        <div id="theme-swatches" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px"></div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="form-group">
         <label>Gemini API Key <span style="font-weight:400;font-size:0.78rem;color:var(--text-muted)">free at aistudio.google.com</span></label>
         <div class="input-with-toggle">
           <input type="password" id="api-key-input" placeholder="AIza...">
@@ -815,8 +820,32 @@ let state = {
   customIngredients: [],
   usdaApiKey: '',
   mealPlan: {},
-  dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 }
+  dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 },
+  userThemes: { P: 'dark-navy', M: 'dark-purple' }
 };
+
+// ========== THEMES ==========
+const THEMES = {
+  'dark-navy':    { label:'Dark Navy',   from:'#0D1B2A', to:'#1A3A5C', bg:'#EEF4FB', card:'#FFFFFF', text:'#0D1B2A', muted:'#4A6B8A', border:'#C5D8EE' },
+  'dark-purple':  { label:'Dark Purple', from:'#1A0A2E', to:'#3D1A6E', bg:'#F3EEF9', card:'#FFFFFF', text:'#1A0A2E', muted:'#6A4A8A', border:'#D5C5EE' },
+  'dark-green':   { label:'Dark Green',  from:'#0A2010', to:'#1A4A2E', bg:'#EEF9F1', card:'#FFFFFF', text:'#0A2010', muted:'#3A6A4A', border:'#B5DEC5' },
+  'dark-red':     { label:'Dark Red',    from:'#2A0A0A', to:'#5C1A1A', bg:'#FDF0F0', card:'#FFFFFF', text:'#2A0A0A', muted:'#8A3A3A', border:'#EEC5C5' },
+  'charcoal':     { label:'Charcoal',    from:'#1A1A1A', to:'#3A3A3A', bg:'#F5F5F5', card:'#FFFFFF', text:'#1A1A1A', muted:'#5A5A5A', border:'#D0D0D0' },
+  'midnight':     { label:'Midnight',    from:'#000814', to:'#001436', bg:'#EEF2FF', card:'#FFFFFF', text:'#000814', muted:'#3A4A7A', border:'#C5CDF0' },
+};
+function applyTheme(user) {
+  const key = (state.userThemes || {})[user] || 'dark-navy';
+  const t = THEMES[key] || THEMES['dark-navy'];
+  const s = document.documentElement.style;
+  s.setProperty('--header-from', t.from);
+  s.setProperty('--header-to', t.to);
+  s.setProperty('--bg', t.bg);
+  s.setProperty('--card-bg', t.card);
+  s.setProperty('--text', t.text);
+  s.setProperty('--text-muted', t.muted);
+  s.setProperty('--border', t.border);
+  s.setProperty('--navy', t.from);
+}
 
 // Macros per 100g, cost per 100g in USD, units map = grams per unit
 const INGREDIENT_DB = [
@@ -1094,6 +1123,7 @@ function setUser(u) {
   state.currentUser = u;
   saveState();
   document.getElementById('who-overlay').style.display = 'none';
+  applyTheme(u);
   updateUserButtons();
   render();
 }
@@ -2879,6 +2909,18 @@ function openSettings() {
   if (!panel) return;
   userLabel.textContent = state.currentUser || 'Not set';
   userLabel.style.color = state.currentUser === 'P' ? 'var(--p-dark)' : state.currentUser === 'M' ? 'var(--m-dark)' : 'var(--text-muted)';
+  // Populate theme swatches
+  const swatchBox = document.getElementById('theme-swatches');
+  if (swatchBox && state.currentUser) {
+    const cur = (state.userThemes || {})[state.currentUser] || 'dark-navy';
+    swatchBox.innerHTML = Object.entries(THEMES).map(([k, t]) => `
+      <button onclick="selectTheme('${k}')" style="border:3px solid ${k===cur?'#29B6F6':'transparent'};border-radius:10px;padding:3px;background:none;cursor:pointer" title="${t.label}">
+        <div style="width:52px;height:36px;border-radius:7px;background:linear-gradient(135deg,${t.from},${t.to});display:flex;align-items:flex-end;padding:3px">
+          <div style="width:100%;height:10px;border-radius:4px;background:${t.bg};opacity:0.85"></div>
+        </div>
+        <div style="font-size:0.62rem;color:var(--text-muted);margin-top:2px;text-align:center">${t.label}</div>
+      </button>`).join('');
+  }
   keyInput.value = state.geminiApiKey || '';
   modelSel.value = state.geminiModel || 'gemini-2.0-flash';
   const usdaEl = document.getElementById('usda-key-input');
@@ -2924,6 +2966,21 @@ function saveSettings() {
   render();
   startSyncPolling(); // restart with new config
 }
+function selectTheme(key) {
+  if (!state.currentUser) return;
+  if (!state.userThemes) state.userThemes = {};
+  state.userThemes[state.currentUser] = key;
+  applyTheme(state.currentUser);
+  saveLocalState();
+  // Refresh swatches to show new selection
+  const swatchBox = document.getElementById('theme-swatches');
+  if (swatchBox) {
+    swatchBox.querySelectorAll('button').forEach(btn => {
+      const k = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+      btn.style.borderColor = k === key ? '#29B6F6' : 'transparent';
+    });
+  }
+}
 function toggleApiKeyVisibility() {
   const inp = document.getElementById('api-key-input');
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
@@ -2961,6 +3018,7 @@ loadState();
 if (!state.currentUser) {
   document.getElementById('who-overlay').style.display = 'flex';
 } else {
+  applyTheme(state.currentUser);
   updateUserButtons();
 }
 render();
