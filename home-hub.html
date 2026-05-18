@@ -792,6 +792,12 @@ select.filter-select-input {
 <div id="modal-container"></div>
 
 <script>
+window.onerror = function(msg, src, line, col, err) {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:12px;font-size:13px;z-index:9999;word-break:break-all';
+  box.textContent = 'JS ERROR (line ' + line + '): ' + msg;
+  document.body.appendChild(box);
+};
 // ========== STATE ==========
 const STORE_KEY = 'homeHub_v1';
 let state = {
