@@ -1180,14 +1180,11 @@ function renderHome() {
 
   const bar = (label, val, goal, color) => {
     if (!goal) return '';
-    const pct = Math.min(100, Math.round(val/goal*100));
+    const pct = Math.min(100, Math.round(val / goal * 100));
     const over = pct >= 100;
     return `<div class="progress-wrap">
-      <div class="progress-label">
-        <span>${label}</span>
-        <span class="${over?'goal-over':''}">${val} / ${goal}${label.includes('g')||label.includes('mg')?'':'}'${label==='Calories'?'kcal':''}}</span>
-      </div>
-      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${over?'#ef4444':color}"></div></div>
+      <div class="progress-label"><span>${label}</span><span class="${over ? 'goal-over' : ''}">${val} / ${goal}</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${over ? '#ef4444' : color}"></div></div>
     </div>`;
   };
 
@@ -1257,7 +1254,7 @@ function renderHome() {
       <div class="dash-section">
         <div class="dash-section-title">Active To-Dos</div>
         ${myTodos.length ? myTodos.map(t => `<div class="dash-row">
-          <button onclick="toggleTodoDone('${t.id}')" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:20px;height:20px;min-width:20px;cursor:pointer"></button>
+          <button onclick="toggleTodo('${t.id}')" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:20px;height:20px;min-width:20px;cursor:pointer"></button>
           <div style="flex:1;font-size:0.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(t.title)}</div>
           ${ownerBadge(t.owner)}
         </div>`).join('') +
