@@ -1,4 +1,4 @@
-const CACHE = 'home-hub-v3';
+const CACHE = 'home-hub-v5';
 const ASSETS = ['/home-hub.html', '/', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
 
 self.addEventListener('install', e => {
