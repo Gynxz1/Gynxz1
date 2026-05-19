@@ -572,9 +572,19 @@ select.filter-select-input {
 .macros-table tr:last-child td { border-bottom: none; }
 
 /* Preview box */
-.preview-box { background: var(--bg); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.preview-box { background: var(--bg); border-radius: 10px; padding: 14px; margin-bottom: 14px; max-height: 55vh; overflow-y: auto; }
 .preview-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
 .preview-box .preview-note { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
+/* Theme color pickers */
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.theme-swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.theme-preset { width: 32px; height: 32px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+.theme-preset:hover { transform: scale(1.12); }
+.theme-preset.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--white); }
+.color-row { display: flex; align-items: center; gap: 8px; }
+.color-row label { font-size: 0.8rem; flex: 1; color: var(--text-muted); }
+.color-row input[type=color] { width: 36px; height: 28px; border: 1px solid var(--border); border-radius: 6px; padding: 2px; cursor: pointer; background: none; }
 
 /* Settings panel — fixed overlay, always in DOM */
 #settings-panel {
@@ -677,6 +687,16 @@ select.filter-select-input {
 .ing-db-macros { display:flex; gap:8px; flex-wrap:wrap; font-size:0.75rem; color:var(--text-muted); }
 .ing-db-macro-pill { background:var(--bg); border-radius:4px; padding:2px 6px; }
 
+/* Flag & filter chips */
+.flag-chip { display:inline-flex; align-items:center; border-radius:20px; padding:2px 7px; font-size:0.68rem; font-weight:700; margin:1px; }
+.flag-chip-red { background:#FEE2E2; color:#DC2626; }
+.flag-chip-orange { background:#FFF3CD; color:#D97706; }
+.flag-chip-purple { background:#F3E8FF; color:#7C3AED; }
+.flag-chip-green  { background:#DCFCE7; color:#15803D; }
+.filter-chip { border:1.5px solid var(--border); border-radius:20px; padding:4px 11px; font-size:0.75rem; font-weight:600; cursor:pointer; background:#fff; color:var(--text-muted); transition:var(--transition); white-space:nowrap; }
+.filter-chip:hover { background:var(--bg); }
+.filter-chip.active { background:var(--sky); border-color:var(--sky); color:#fff; }
+
 /* Responsive */
 @media (max-width: 600px) {
   #header h1 { font-size: 1rem; }
@@ -684,6 +704,77 @@ select.filter-select-input {
   .recipe-grid { grid-template-columns: 1fr; }
   .modal { max-height: 95vh; }
 }
+
+/* ===== WORKOUT TRACKER ===== */
+.workout-subheader { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.workout-subheader h2 { font-size:1.1rem; font-weight:800; margin:0; }
+.workout-view-link { background:none; border:none; color:var(--sky); font-size:0.85rem; font-weight:700; cursor:pointer; padding:0; text-decoration:underline; }
+
+/* Muscle group badges */
+.muscle-badge { display:inline-flex; align-items:center; border-radius:20px; padding:2px 8px; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; }
+.muscle-back       { background:#DBEAFE; color:#1E40AF; }
+.muscle-chest      { background:#FEE2E2; color:#991B1B; }
+.muscle-shoulders  { background:#FFEDD5; color:#9A3412; }
+.muscle-arms       { background:#FEF3C7; color:#92400E; }
+.muscle-core       { background:#D1FAE5; color:#065F46; }
+.muscle-legs       { background:#F3E8FF; color:#6B21A8; }
+.muscle-gluteships { background:#FCE7F3; color:#9D174D; }
+.muscle-cardio     { background:#CFFAFE; color:#155E75; }
+.muscle-custom     { background:#F1F5F9; color:#475569; }
+
+/* Exercise form block */
+.exercise-block { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow); }
+.exercise-block-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.exercise-block-name { font-weight:700; font-size:0.95rem; flex:1; }
+.exercise-remove-btn { background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 6px; border-radius:6px; transition:var(--transition); }
+.exercise-remove-btn:hover { background:#FEE2E2; }
+.ex-meta-select { border:1.5px solid var(--border); border-radius:20px; padding:3px 10px; font-size:0.75rem; font-weight:600; color:var(--text-muted); background:var(--bg); cursor:pointer; outline:none; transition:var(--transition); }
+.ex-meta-select:hover, .ex-meta-select:focus { border-color:var(--sky); color:var(--text); }
+.repeat-day-btn { border:1.5px solid var(--border); border-radius:20px; padding:5px 10px; font-size:0.78rem; font-weight:700; cursor:pointer; background:var(--card-bg); color:var(--text-muted); transition:var(--transition); }
+.repeat-day-btn:hover { border-color:var(--sky); color:var(--sky); }
+.repeat-day-btn.active { background:#7C3AED; border-color:#7C3AED; color:#fff; }
+
+/* Set rows */
+.set-row { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.set-row:last-of-type { border-bottom:none; }
+.set-label { font-size:0.75rem; color:var(--text-muted); font-weight:600; min-width:38px; }
+.set-input { width:64px; border:1.5px solid var(--border); border-radius:7px; padding:4px 7px; font-size:0.85rem; background:#fff; color:var(--text); text-align:center; }
+.set-input:focus { outline:none; border-color:var(--sky); box-shadow:0 0 0 2px rgba(41,182,246,0.15); }
+.set-sep { color:var(--text-muted); font-size:0.8rem; }
+.set-unit-toggle { border:1.5px solid var(--border); border-radius:7px; padding:4px 8px; font-size:0.75rem; font-weight:600; cursor:pointer; background:#fff; color:var(--text-muted); transition:var(--transition); }
+.set-unit-toggle:hover { background:var(--bg); }
+.set-remove-btn { background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; padding:2px 5px; border-radius:5px; transition:var(--transition); margin-left:auto; }
+.set-remove-btn:hover { background:#FEE2E2; }
+.cardio-duration-wrap { display:flex; align-items:center; gap:8px; padding:6px 0; }
+.add-set-btn { background:none; border:1.5px dashed var(--border); border-radius:7px; padding:4px 12px; font-size:0.78rem; font-weight:600; color:var(--text-muted); cursor:pointer; margin-top:6px; transition:var(--transition); }
+.add-set-btn:hover { border-color:var(--sky); color:var(--sky); background:var(--sky-bg); }
+
+/* Save workout bar */
+.save-workout-bar { display:flex; justify-content:flex-end; gap:10px; align-items:center; margin-top:16px; padding-top:14px; border-top:2px solid var(--border); }
+
+/* Workout history cards */
+.workout-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:10px; box-shadow:var(--shadow); transition:var(--transition); }
+.workout-card:hover { box-shadow:var(--shadow-md); }
+.workout-card-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.workout-card-date { font-weight:800; font-size:1rem; }
+.workout-card-ex { display:flex; align-items:baseline; gap:6px; padding:4px 0; border-bottom:1px solid var(--border); font-size:0.85rem; }
+.workout-card-ex:last-child { border-bottom:none; }
+.workout-card-ex-name { font-weight:600; flex:1; }
+.workout-card-ex-sets { font-size:0.78rem; color:var(--text-muted); }
+
+/* Exercise picker modal */
+.ex-pick-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:var(--transition); }
+.ex-pick-row:last-child { border-bottom:none; }
+.ex-pick-row:hover { background:var(--bg); }
+.ex-pick-name { font-weight:600; font-size:0.88rem; flex:1; }
+.ex-pick-equip { font-size:0.75rem; color:var(--text-muted); }
+
+/* Workout calendar chip */
+.workout-cal-chip { display:flex; align-items:center; gap:4px; margin-top:4px; background:#EDE9FE; color:#5B21B6; border-radius:6px; padding:3px 7px; font-size:0.68rem; font-weight:700; cursor:pointer; transition:var(--transition); border:none; width:100%; text-align:left; }
+.workout-cal-chip:hover { background:#DDD6FE; }
+
+/* Muscle group filter chips in picker */
+.mg-filter-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
 </style>
 </head>
 <body>
@@ -701,7 +792,7 @@ select.filter-select-input {
 </div>
 
 <div id="header">
-  <h1>&#127968; Home Hub</h1>
+  <h1>&#127968; Home Hub <span style="font-size:0.6rem;font-weight:400;opacity:0.55;letter-spacing:0.05em">v1.8</span></h1>
   <div id="sync-indicator" style="font-size:0.72rem;letter-spacing:0.02em;min-width:60px;text-align:center"></div>
   <div class="user-toggle">
     <button class="user-btn" id="btn-p" onclick="setUser('P')">P</button>
@@ -718,6 +809,7 @@ select.filter-select-input {
   <button class="tab-btn" onclick="switchTab('grocery')"><span class="tab-icon">&#128722;</span>Grocery</button>
   <button class="tab-btn" onclick="switchTab('meals')"><span class="tab-icon">&#128197;</span>Meals</button>
   <button class="tab-btn" onclick="switchTab('recipes')"><span class="tab-icon">&#127859;</span>Recipes</button>
+  <button class="tab-btn" onclick="switchTab('workout')"><span class="tab-icon">&#128170;</span>Workout</button>
 </div>
 
 <div id="main"></div>
@@ -782,6 +874,26 @@ select.filter-select-input {
       </div>
       <div id="sync-test-result" style="font-size:0.8rem;margin-bottom:8px;min-height:20px"></div>
       <button type="button" id="test-sync-btn" class="btn-secondary" style="width:100%;margin-bottom:8px">Test Connection</button>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">🎨 Appearance</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px">Quick themes:</div>
+      <div class="theme-swatch-row" id="theme-presets">
+        <button class="theme-preset" data-theme="default" title="Ocean (default)" style="background:linear-gradient(135deg,#0D1B2A,#EEF4FB)"></button>
+        <button class="theme-preset" data-theme="forest" title="Forest" style="background:linear-gradient(135deg,#1B3A2A,#E8F5E9)"></button>
+        <button class="theme-preset" data-theme="sunset" title="Sunset" style="background:linear-gradient(135deg,#7C2D12,#FFF7ED)"></button>
+        <button class="theme-preset" data-theme="midnight" title="Midnight" style="background:linear-gradient(135deg,#1E1B4B,#2D2B55)"></button>
+        <button class="theme-preset" data-theme="rose" title="Rose" style="background:linear-gradient(135deg,#881337,#FFF1F2)"></button>
+        <button class="theme-preset" data-theme="slate" title="Slate" style="background:linear-gradient(135deg,#1E293B,#F1F5F9)"></button>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin:10px 0 6px">Custom colors:</div>
+      <div class="theme-grid">
+        <div class="color-row"><label>Page background</label><input type="color" id="tc-bg" value="#EEF4FB"></div>
+        <div class="color-row"><label>Cards</label><input type="color" id="tc-card" value="#FFFFFF"></div>
+        <div class="color-row"><label>Header</label><input type="color" id="tc-header" value="#0D1B2A"></div>
+        <div class="color-row"><label>Accent</label><input type="color" id="tc-accent" value="#29B6F6"></div>
+        <div class="color-row"><label>Tab highlight</label><input type="color" id="tc-highlight" value="#FFD600"></div>
+        <div class="color-row"><label>Text</label><input type="color" id="tc-text" value="#0D1B2A"></div>
+      </div>
       <div class="form-actions">
         <button class="btn-secondary" id="settings-cancel-btn">Cancel</button>
         <button class="btn-primary" id="settings-save-btn">Save</button>
@@ -815,8 +927,99 @@ let state = {
   customIngredients: [],
   usdaApiKey: '',
   mealPlan: {},
-  dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 }
+  dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 },
+  workouts: [],
+  workoutTemplates: [],
+  customExercises: []
 };
+
+// ========== EXERCISE DATABASE ==========
+const EXERCISE_DB = [
+  // Back
+  { id:'ex_seated_row',          name:'Seated Row',               muscleGroup:'Back',        equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_lat_pulldown',        name:'Lat Pulldown',             muscleGroup:'Back',        equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_deadlift',            name:'Deadlift',                 muscleGroup:'Back',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_bent_over_row',       name:'Bent Over Row',            muscleGroup:'Back',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_cable_row',           name:'Cable Row',                muscleGroup:'Back',        equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_pull_up',             name:'Pull-Up',                  muscleGroup:'Back',        equipment:'Pull-Up Bar',      type:'strength' },
+  { id:'ex_chin_up',             name:'Chin-Up',                  muscleGroup:'Back',        equipment:'Pull-Up Bar',      type:'strength' },
+  { id:'ex_back_extension',      name:'Back Extension',           muscleGroup:'Back',        equipment:'Machine',          type:'strength' },
+  { id:'ex_tbar_row',            name:'T-Bar Row',                muscleGroup:'Back',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_single_arm_db_row',   name:'Single Arm Dumbbell Row',  muscleGroup:'Back',        equipment:'Dumbbell',         type:'strength' },
+  // Chest
+  { id:'ex_seated_chest_press',  name:'Seated Chest Press',       muscleGroup:'Chest',       equipment:'Machine',          type:'strength' },
+  { id:'ex_bench_press',         name:'Bench Press',              muscleGroup:'Chest',       equipment:'Barbell',          type:'strength' },
+  { id:'ex_incline_bench_press', name:'Incline Bench Press',      muscleGroup:'Chest',       equipment:'Barbell',          type:'strength' },
+  { id:'ex_decline_bench_press', name:'Decline Bench Press',      muscleGroup:'Chest',       equipment:'Barbell',          type:'strength' },
+  { id:'ex_chest_fly',           name:'Chest Fly',                muscleGroup:'Chest',       equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_cable_crossover',     name:'Cable Crossover',          muscleGroup:'Chest',       equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_push_up',             name:'Push-Up',                  muscleGroup:'Chest',       equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_db_press',            name:'Dumbbell Press',           muscleGroup:'Chest',       equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_pec_deck',            name:'Pec Deck',                 muscleGroup:'Chest',       equipment:'Machine',          type:'strength' },
+  // Shoulders
+  { id:'ex_lateral_raise',       name:'Lateral Raise',            muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_shoulder_press',      name:'Shoulder Press',           muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_front_raise',         name:'Front Raise',              muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_rear_delt_fly',       name:'Rear Delt Fly',            muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_arnold_press',        name:'Arnold Press',             muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_upright_row',         name:'Upright Row',              muscleGroup:'Shoulders',   equipment:'Barbell',          type:'strength' },
+  { id:'ex_face_pull',           name:'Face Pull',                muscleGroup:'Shoulders',   equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_shrug',               name:'Shrug',                    muscleGroup:'Shoulders',   equipment:'Dumbbell',         type:'strength' },
+  // Arms
+  { id:'ex_triceps_extension',   name:'Triceps Extension',        muscleGroup:'Arms',        equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_triceps_pushdown',    name:'Triceps Pushdown',         muscleGroup:'Arms',        equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_skull_crusher',       name:'Skull Crusher',            muscleGroup:'Arms',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_bicep_curl',          name:'Bicep Curl',               muscleGroup:'Arms',        equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_hammer_curl',         name:'Hammer Curl',              muscleGroup:'Arms',        equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_preacher_curl',       name:'Preacher Curl',            muscleGroup:'Arms',        equipment:'Machine',          type:'strength' },
+  { id:'ex_concentration_curl',  name:'Concentration Curl',       muscleGroup:'Arms',        equipment:'Dumbbell',         type:'strength' },
+  { id:'ex_dips',                name:'Dips',                     muscleGroup:'Arms',        equipment:'Bodyweight',       type:'strength' },
+  // Core
+  { id:'ex_abdominal_crunch',    name:'Abdominal Crunch',         muscleGroup:'Core',        equipment:'Machine',          type:'strength' },
+  { id:'ex_plank',               name:'Plank',                    muscleGroup:'Core',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_sit_up',              name:'Sit-Up',                   muscleGroup:'Core',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_cable_crunch',        name:'Cable Crunch',             muscleGroup:'Core',        equipment:'Cable Machine',    type:'strength' },
+  { id:'ex_leg_raise',           name:'Leg Raise',                muscleGroup:'Core',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_russian_twist',       name:'Russian Twist',            muscleGroup:'Core',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_ab_rollout',          name:'Ab Rollout',               muscleGroup:'Core',        equipment:'Ab Wheel',         type:'strength' },
+  { id:'ex_side_plank',          name:'Side Plank',               muscleGroup:'Core',        equipment:'Bodyweight',       type:'strength' },
+  // Legs
+  { id:'ex_leg_press',           name:'Leg Press',                muscleGroup:'Legs',        equipment:'Machine',          type:'strength' },
+  { id:'ex_seated_leg_curl',     name:'Seated Leg Curl',          muscleGroup:'Legs',        equipment:'Machine',          type:'strength' },
+  { id:'ex_leg_extension',       name:'Leg Extension',            muscleGroup:'Legs',        equipment:'Machine',          type:'strength' },
+  { id:'ex_squat',               name:'Squat',                    muscleGroup:'Legs',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_hack_squat',          name:'Hack Squat',               muscleGroup:'Legs',        equipment:'Machine',          type:'strength' },
+  { id:'ex_romanian_deadlift',   name:'Romanian Deadlift',        muscleGroup:'Legs',        equipment:'Barbell',          type:'strength' },
+  { id:'ex_lunges',              name:'Lunges',                   muscleGroup:'Legs',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_calf_raise',          name:'Calf Raise',               muscleGroup:'Legs',        equipment:'Machine',          type:'strength' },
+  { id:'ex_glute_bridge',        name:'Glute Bridge',             muscleGroup:'Legs',        equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_step_up',             name:'Step-Up',                  muscleGroup:'Legs',        equipment:'Bodyweight',       type:'strength' },
+  // Glutes/Hips
+  { id:'ex_hip_abductor',        name:'Hip Abductor',             muscleGroup:'Glutes/Hips', equipment:'Machine',          type:'strength' },
+  { id:'ex_hip_adductor',        name:'Hip Adductor',             muscleGroup:'Glutes/Hips', equipment:'Machine',          type:'strength' },
+  { id:'ex_hip_thrust',          name:'Hip Thrust',               muscleGroup:'Glutes/Hips', equipment:'Barbell',          type:'strength' },
+  { id:'ex_donkey_kick',         name:'Donkey Kick',              muscleGroup:'Glutes/Hips', equipment:'Bodyweight',       type:'strength' },
+  { id:'ex_cable_kickback',      name:'Cable Kickback',           muscleGroup:'Glutes/Hips', equipment:'Cable Machine',    type:'strength' },
+  // Cardio
+  { id:'ex_stair_stepper',       name:'Stair Stepper',            muscleGroup:'Cardio',      equipment:'Cardio Machine',   type:'cardio' },
+  { id:'ex_treadmill',           name:'Treadmill',                muscleGroup:'Cardio',      equipment:'Cardio Machine',   type:'cardio' },
+  { id:'ex_elliptical',          name:'Elliptical',               muscleGroup:'Cardio',      equipment:'Cardio Machine',   type:'cardio' },
+  { id:'ex_stationary_bike',     name:'Stationary Bike',          muscleGroup:'Cardio',      equipment:'Cardio Machine',   type:'cardio' },
+  { id:'ex_rowing_machine',      name:'Rowing Machine',           muscleGroup:'Cardio',      equipment:'Cardio Machine',   type:'cardio' },
+  { id:'ex_jump_rope',           name:'Jump Rope',                muscleGroup:'Cardio',      equipment:'Jump Rope',        type:'cardio' },
+  { id:'ex_swimming',            name:'Swimming',                 muscleGroup:'Cardio',      equipment:'Pool',             type:'cardio' },
+];
+
+// ========== WORKOUT MODULE STATE ==========
+let workoutView = 'log'; // 'log' | 'history'
+let _wkDate = '';
+let _wkOwner = '';
+let _wkExercises = []; // array of exercise objects being built
+let _wkNotes = '';
+let _wkRepeatDays = []; // 0=Sun,1=Mon,...6=Sat
+let _exPickerSearch = '';
+let _exPickerMuscleFilter = 'All';
+let _wkEditingId = null; // id of workout being edited in history
 
 // Macros per 100g, cost per 100g in USD, units map = grams per unit
 const INGREDIENT_DB = [
@@ -1053,6 +1256,7 @@ let editingId = null;
 let builderIngredients = []; // [{ingId,name,amount,unit,grams,cal,fat,carbs,fiber,pro,netCarbs,cost}]
 let builderSearchQuery = '';
 let builderSelectedIngId = null;
+let ingDbFilters = { search: '', flags: {} };
 
 function loadState() {
   try {
@@ -1109,7 +1313,7 @@ function updateUserButtons() {
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const tabs = ['home','reminders','todos','grocery','meals','recipes'];
+    const tabs = ['home','reminders','todos','grocery','meals','recipes','workout'];
     b.classList.toggle('active', tabs[i] === tab);
   });
   render();
@@ -1124,7 +1328,8 @@ function render() {
     activeTab === 'todos'     ? renderTodos() :
     activeTab === 'grocery'   ? renderGrocery() :
     activeTab === 'meals'     ? renderMealPlan() :
-    activeTab === 'recipes'   ? renderRecipes() : '';
+    activeTab === 'recipes'   ? renderRecipes() :
+    activeTab === 'workout'   ? renderWorkout() : '';
   main.innerHTML = content;
 }
 
@@ -1328,6 +1533,23 @@ function renderMealPlan() {
         html += `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:auto">+ Add</div>`;
       }
       html += `</div>`;
+    });
+
+    // Logged workout chip for this day
+    const dayWorkout = (state.workouts || []).find(w => w.date === key);
+    if (dayWorkout) {
+      const exCount = (dayWorkout.exercises || []).length;
+      html += `<button class="workout-cal-chip" onclick="showWorkoutSummaryModal('${dayWorkout.id}')">&#128170; Workout (${exCount} exercise${exCount!==1?'s':''})</button>`;
+    }
+    // Recurring template chips for this day of week
+    const dow = new Date(key + 'T12:00:00').getDay();
+    (state.workoutTemplates || []).filter(t => t.repeatDays.includes(dow)).forEach(t => {
+      const logged = !!dayWorkout;
+      if (!logged) {
+        html += `<button class="workout-cal-chip" style="opacity:0.6;border:1.5px dashed #7C3AED;background:#F5F3FF"
+          onclick="prefillWorkoutFromTemplate('${t.id}','${key}')" title="Tap to log this recurring workout">
+          🔁 ${escapeHtml(t.name||'Workout')}</button>`;
+      }
     });
 
     if (hasMeals) {
@@ -2263,7 +2485,25 @@ Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=prot
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              servings: { type: 'number' },
+              ingredients: { type: 'array', items: { type: 'string' } },
+              procedure: { type: 'array', items: { type: 'string' } },
+              macrosPerServing: { type: 'object', properties: { calories: { type: 'number' }, protein: { type: 'number' }, carbs: { type: 'number' }, fat: { type: 'number' }, fiber: { type: 'number' }, netCarbs: { type: 'number' } } },
+              macrosTotal: { type: 'object', properties: { calories: { type: 'number' }, protein: { type: 'number' }, carbs: { type: 'number' }, fat: { type: 'number' }, fiber: { type: 'number' }, netCarbs: { type: 'number' } } },
+              tags: { type: 'object', properties: { keto: { type: 'boolean' }, vegan: { type: 'boolean' }, highProtein: { type: 'boolean' }, vegetarian: { type: 'boolean' }, glutenFree: { type: 'boolean' }, dairyFree: { type: 'boolean' }, lowCalorie: { type: 'boolean' }, lowHistamine: { type: 'boolean' }, antiInflammatory: { type: 'boolean' } } },
+              notes: { type: 'string' }
+            },
+            required: ['title', 'servings', 'ingredients', 'procedure']
+          }
+        }
       })
     });
     if (!resp.ok) {
@@ -2274,8 +2514,16 @@ Tag rules: keto=netCarbs<10g/serving; vegan=no animal products; highProtein=prot
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let parsed;
     try {
-      const cleaned = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
-      parsed = JSON.parse(cleaned);
+      // 1. Try direct parse first (responseMimeType:json should give clean output)
+      let cleaned = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch(_) {
+        // 2. Extract the first {...} block from anywhere in the response
+        const match = text.match(/\{[\s\S]*\}/);
+        if (!match) throw new Error('no JSON object found');
+        parsed = JSON.parse(match[0]);
+      }
     } catch(e) {
       throw new Error('Gemini returned invalid JSON. Try again or paste the recipe text directly.');
     }
@@ -2316,8 +2564,8 @@ function showRecipePreviewModal(r, isEdit) {
       <div class="macro-item"><div class="macro-val">${mp.carbs}g</div><div class="macro-lbl">carbs</div></div>
       <div class="macro-item"><div class="macro-val">${mp.fiber}g</div><div class="macro-lbl">fiber</div></div>
     </div>` : '';
-  const ingPreview = (r.ingredients||[]).slice(0,5).map(i => `<li>${escapeHtml(i)}</li>`).join('');
-  const moreIng = (r.ingredients||[]).length > 5 ? `<li style="color:var(--text-muted)">+${r.ingredients.length-5} more...</li>` : '';
+  const ingPreview = (r.ingredients||[]).map(i => `<li>${escapeHtml(i)}</li>`).join('');
+  const stepsPreview = (r.procedure||[]).map((s,i) => `<li style="margin-bottom:6px"><strong>Step ${i+1}:</strong> ${escapeHtml(s)}</li>`).join('');
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
       <div class="modal modal-lg">
@@ -2336,7 +2584,8 @@ function showRecipePreviewModal(r, isEdit) {
               <input type="number" id="prev-servings" value="${r.servings||''}" min="1">
             </div>
             ${macroSummary}
-            ${ingPreview ? `<div style="margin-top:8px"><strong style="font-size:0.8rem">Ingredients preview:</strong><ul style="padding-left:16px;margin-top:4px;font-size:0.82rem">${ingPreview}${moreIng}</ul></div>` : ''}
+            ${ingPreview ? `<div style="margin-top:8px"><strong style="font-size:0.85rem">Ingredients (${(r.ingredients||[]).length}):</strong><ul style="padding-left:16px;margin-top:4px;font-size:0.82rem;line-height:1.7">${ingPreview}</ul></div>` : ''}
+            ${stepsPreview ? `<div style="margin-top:12px"><strong style="font-size:0.85rem">Instructions (${(r.procedure||[]).length} steps):</strong><ol style="padding-left:18px;margin-top:6px;font-size:0.82rem;line-height:1.7">${stepsPreview}</ol></div>` : ''}
           </div>
           <div class="form-group">
             <label>Dietary Tags (toggle to adjust)</label>
@@ -2506,13 +2755,148 @@ function healthGrade(mp) {
   return { grade:'F', color:'#ef4444' };
 }
 
+// ---- Ingredient flag detection (for built-in & USDA entries) ----
+const FLAG_PATTERNS = {
+  dairy:            ['milk','butter','cream','cheese','whey','lactose','yogurt','cheddar','mozzarella','parmesan','casein'],
+  gluten:           ['wheat','barley','rye','malt','oat','flour','bread','pasta','tortilla'],
+  eggs:             ['egg','albumin','mayonnaise','mayo'],
+  treeNuts:         ['almond','cashew','walnut','pecan','pistachio','hazelnut','macadamia'],
+  peanuts:          ['peanut'],
+  soy:              ['soy','tofu','edamame','miso','tempeh','lecithin'],
+  shellfish:        ['shrimp','crab','lobster','scallop','clam','oyster','mussel'],
+  fish:             ['salmon','tuna','tilapia','cod','halibut','sardine','anchovy',' fish'],
+  sesame:           ['sesame','tahini'],
+  artificialColors: ['red 40','yellow 5','yellow 6','blue 1','blue 2','green 3','caramel color'],
+  artificialFlavors:['artificial flavor'],
+  preservatives:    ['bha','bht','tbhq','sodium benzoate','potassium sorbate','sodium nitrite'],
+  msg:              ['monosodium glutamate'],
+  hfcs:             ['high fructose corn syrup'],
+  nitrates:         ['sodium nitrate','sodium nitrite'],
+  addedSugars:      ['dextrose','sucrose','fructose','maltose','glucose','corn syrup','cane sugar','cane juice','brown sugar','raw sugar','turbinado','molasses','honey','agave','maple syrup','invert sugar','evaporated cane','fruit juice concentrate','barley malt syrup','treacle','muscovado'],
+  artificialSweeteners: ['sucralose','aspartame','saccharin','acesulfame','ace-k','neotame','advantame','cyclamate','splenda'],
+  naturalSweeteners:['stevia','allulose','monk fruit','erythritol','xylitol','sorbitol','maltitol','luo han guo','reb a','steviol glycoside','inositol'],
+  naturalFlavors:   ['natural flavor','natural flavoring','natural flavour','natural flavours']
+};
+
+function detectIngredientFlags(ing) {
+  // For scanned ingredients with explicit flags, use those
+  if (ing.flags) return ing.flags;
+  // Otherwise derive from name + ingredientsText
+  const src = ((ing.n || '') + ' ' + (ing.ingredientsText || '')).toLowerCase();
+  const f = {};
+  Object.entries(FLAG_PATTERNS).forEach(([key, words]) => {
+    f[key] = words.some(w => src.includes(w));
+  });
+  return f;
+}
+
+function ingPassesFilters(ing, filters) {
+  // Search filter
+  if (filters.search && !ing.n.toLowerCase().includes(filters.search.toLowerCase())) return false;
+  // Flag filters — each active flag key means "must NOT have this flag"
+  const activeFlags = Object.keys(filters.flags).filter(k => filters.flags[k]);
+  if (!activeFlags.length) return true;
+  const f = detectIngredientFlags(ing);
+  return activeFlags.every(key => !f[key]);
+}
+
 function showIngredientDbModal() {
+  // Reset filters when first opening
+  ingDbFilters = { search: '', flags: {} };
+  document.getElementById('modal-container').innerHTML = buildIngDbModalShell();
+  renderIngDbList();
+}
+
+function buildIngDbModalShell() {
+  const allergenChips = [
+    ['dairy','Dairy-free'], ['gluten','Gluten-free'], ['eggs','Egg-free'],
+    ['treeNuts','Nut-free'], ['peanuts','Peanut-free'], ['soy','Soy-free'],
+    ['shellfish','Shellfish-free'], ['fish','Fish-free'], ['sesame','Sesame-free']
+  ].map(([k,lbl]) => `<button class="filter-chip ${ingDbFilters.flags[k]?'active':''}" onclick="toggleIngDbFlag('${k}')">${lbl}</button>`).join('');
+
+  const additiveChips = [
+    ['artificialColors','No Artif. Colors'], ['artificialFlavors','No Artif. Flavors'],
+    ['preservatives','No Preservatives'], ['msg','No MSG'],
+    ['hfcs','No HFCS'], ['nitrates','No Nitrates']
+  ].map(([k,lbl]) => `<button class="filter-chip ${ingDbFilters.flags[k]?'active':''}" onclick="toggleIngDbFlag('${k}')">${lbl}</button>`).join('');
+
+  const sugarChips = [
+    ['addedSugars','No Added Sugars'], ['artificialSweeteners','No Artif. Sweeteners'],
+    ['naturalSweeteners','No Natural Sweeteners'], ['naturalFlavors','No Natural Flavors']
+  ].map(([k,lbl]) => `<button class="filter-chip ${ingDbFilters.flags[k]?'active':''}" onclick="toggleIngDbFlag('${k}')">${lbl}</button>`).join('');
+
+  return `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h2>Ingredient Database</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <button class="btn-secondary" style="padding:7px 14px;font-size:0.82rem" onclick="showAddCustomIngredientModal()">+ Add Custom Ingredient</button>
+            <button class="btn-secondary" style="padding:7px 14px;font-size:0.82rem" onclick="showScanLabelModal()">&#128247; Scan Label</button>
+          </div>
+          <div style="margin-bottom:8px">
+            <input type="text" id="ing-db-search" placeholder="Search ingredients..." value="${escapeHtml(ingDbFilters.search)}"
+              oninput="ingDbFilters.search=this.value;renderIngDbList()"
+              style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;font-size:0.88rem">
+          </div>
+          <div style="margin-bottom:6px">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Allergen-free filters</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">${allergenChips}</div>
+          </div>
+          <div style="margin-bottom:6px">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Additive-free filters</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">${additiveChips}</div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Sugars &amp; Sweeteners</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">${sugarChips}</div>
+          </div>
+          <div id="ing-db-list-wrap" style="max-height:60vh;overflow-y:auto"></div>
+          <div class="form-actions"><button class="btn-secondary" onclick="closeModal()">Close</button></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderIngDbList() {
+  const wrap = document.getElementById('ing-db-list-wrap');
+  if (!wrap) return;
   const all = getAllIngredients();
-  const rows = all.map((ing, idx) => {
+  const filtered = all.filter(ing => ingPassesFilters(ing, ingDbFilters));
+
+  // Update header count
+  const h2 = document.querySelector('#modal-container .modal-header h2');
+  if (h2) h2.textContent = `Ingredient Database (${filtered.length}/${all.length})`;
+
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128269;</div><p>No ingredients match the current filters.</p></div>`;
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(ing => {
     const isCustom = !INGREDIENT_DB.find(i => i.id === ing.id);
+    const flags = isCustom ? detectIngredientFlags(ing) : null;
+    let flagBadges = '';
+    if (flags) {
+      const allergenKeys = ['dairy','gluten','eggs','treeNuts','peanuts','soy','shellfish','fish','sesame'];
+      const additiveKeys = ['artificialColors','artificialFlavors','preservatives','msg','hfcs','nitrates'];
+      const sugarKeys    = ['addedSugars','artificialSweeteners','hfcs'];
+      const sweetenerKeys= ['naturalSweeteners'];
+      const naturalKeys  = ['naturalFlavors'];
+      const allergenLabels  = {dairy:'Dairy',gluten:'Gluten',eggs:'Eggs',treeNuts:'Tree Nuts',peanuts:'Peanuts',soy:'Soy',shellfish:'Shellfish',fish:'Fish',sesame:'Sesame'};
+      const additiveLabels  = {artificialColors:'Artif. Colors',artificialFlavors:'Artif. Flavors',preservatives:'Preservatives',msg:'MSG',hfcs:'HFCS',nitrates:'Nitrates'};
+      const sugarLabels     = {addedSugars:'Added Sugars',artificialSweeteners:'Artif. Sweetener',hfcs:'HFCS'};
+      const sweetenerLabels = {naturalSweeteners:'Natural Sweetener'};
+      const naturalLabels   = {naturalFlavors:'Natural Flavors'};
+      allergenKeys.forEach(k => { if (flags[k]) flagBadges += `<span class="flag-chip flag-chip-red">${allergenLabels[k]}</span>`; });
+      additiveKeys.filter(k => !sugarKeys.includes(k)).forEach(k => { if (flags[k]) flagBadges += `<span class="flag-chip flag-chip-orange">${additiveLabels[k]}</span>`; });
+      sugarKeys.forEach(k => { if (flags[k]) flagBadges += `<span class="flag-chip flag-chip-purple">${sugarLabels[k]}</span>`; });
+      sweetenerKeys.forEach(k => { if (flags[k]) flagBadges += `<span class="flag-chip flag-chip-green">${sweetenerLabels[k]}</span>`; });
+      naturalKeys.forEach(k => { if (flags[k]) flagBadges += `<span class="flag-chip flag-chip-orange">${naturalLabels[k]}</span>`; });
+    }
     return `<div class="ing-db-row">
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:0.85rem">${escapeHtml(ing.n)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:0.85rem">${escapeHtml(ing.n)}${isCustom ? ' <span style="font-size:0.68rem;background:var(--sky-bg);color:var(--sky);border-radius:4px;padding:1px 5px">custom</span>' : ''}</div>
         <div class="ing-db-macros">
           <span class="ing-db-macro-pill">Cal: ${ing.cal}</span>
           <span class="ing-db-macro-pill">Fat: ${ing.fat}g</span>
@@ -2522,21 +2906,300 @@ function showIngredientDbModal() {
           <span class="ing-db-macro-pill">Net: ${round1(ing.carbs-ing.fiber)}g</span>
           <span class="ing-db-macro-pill" style="color:#22c55e">${formatCost(ing.cost)}/100g</span>
         </div>
+        ${flagBadges ? `<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:2px">${flagBadges}</div>` : ''}
       </div>
       ${isCustom ? `<button class="builder-remove-btn" onclick="deleteCustomIngredient('${ing.id}')">&#x2715;</button>` : ''}
     </div>`;
   }).join('');
+}
+
+function toggleIngDbFlag(key) {
+  ingDbFilters.flags[key] = !ingDbFilters.flags[key];
+  // Re-render the entire shell so chip states update
+  document.getElementById('modal-container').innerHTML = buildIngDbModalShell();
+  renderIngDbList();
+  // Restore search value focus
+  const si = document.getElementById('ing-db-search');
+  if (si) { si.value = ingDbFilters.search; }
+}
+
+// ---- Scan Label Modal ----
+let _scanStep = 1;
+let _scanFile1 = null;
+let _scanFile2 = null;
+let _scanParsedResult = null;
+
+function showScanLabelModal(step) {
+  _scanStep = step || 1;
+  if (!state.geminiApiKey) {
+    document.getElementById('modal-container').innerHTML = `
+      <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal">
+          <div class="modal-header"><h2>&#128247; Scan Label</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+          <div class="modal-body">
+            <div style="background:#FEF3C7;border-radius:9px;padding:10px 14px;font-size:0.83rem;color:#92400E;margin-bottom:14px">
+              &#9888;&#65039; No Gemini API key set. <button style="background:none;border:none;cursor:pointer;color:#92400E;font-weight:700;text-decoration:underline" onclick="closeModal();openSettings()">Set it in Settings</button>
+            </div>
+            <div class="form-actions"><button class="btn-secondary" onclick="showIngredientDbModal()">&#8592; Back</button></div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const step1Html = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Step 1 of 2 — Nutrition Facts Panel</div>
+      <div class="form-group">
+        <label>Photo 1: Nutrition Facts Panel</label>
+        <input type="file" id="scan-file-1" accept="image/*" capture="environment" onchange="onScanFile1Change(this)">
+      </div>
+      <div id="scan-preview-1" style="margin-top:8px;display:none">
+        <img id="scan-img-1" style="max-width:100%;max-height:200px;border-radius:8px;border:1.5px solid var(--border)" src="">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="showIngredientDbModal()">&#8592; Back</button>
+      <button class="btn-primary" id="scan-next-btn" disabled onclick="showScanLabelModal(2)">Next &#8594;</button>
+    </div>`;
+
+  const step2Html = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Step 2 of 2 — Ingredients List</div>
+      <div style="margin-bottom:10px;padding:8px 12px;background:var(--bg);border-radius:8px;font-size:0.8rem;color:var(--text-muted)">
+        &#10003; Nutrition Facts photo captured
+      </div>
+      <div class="form-group">
+        <label>Photo 2: Ingredients List</label>
+        <input type="file" id="scan-file-2" accept="image/*" capture="environment" onchange="onScanFile2Change(this)">
+      </div>
+      <div id="scan-preview-2" style="margin-top:8px;display:none">
+        <img id="scan-img-2" style="max-width:100%;max-height:200px;border-radius:8px;border:1.5px solid var(--border)" src="">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="showScanLabelModal(1)">&#8592; Back</button>
+      <button class="btn-primary" id="scan-submit-btn" disabled onclick="submitScanLabel()">Scan with Gemini &#8594;</button>
+    </div>`;
+
   document.getElementById('modal-container').innerHTML = `
     <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
       <div class="modal modal-lg">
-        <div class="modal-header"><h2>Ingredient Database (${all.length})</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-header"><h2>&#128247; Scan Food Label</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
         <div class="modal-body">
-          <button class="btn-secondary" style="margin-bottom:12px" onclick="showAddCustomIngredientModal()">+ Add Custom Ingredient</button>
-          <div style="max-height:60vh;overflow-y:auto">${rows}</div>
-          <div class="form-actions"><button class="btn-secondary" onclick="closeModal()">Close</button></div>
+          ${_scanStep === 1 ? step1Html : step2Html}
         </div>
       </div>
     </div>`;
+
+  // Restore previews if files already chosen
+  if (_scanStep === 1 && _scanFile1) {
+    _previewScanFile(_scanFile1, 'scan-img-1', 'scan-preview-1');
+    const btn = document.getElementById('scan-next-btn');
+    if (btn) btn.disabled = false;
+  }
+  if (_scanStep === 2 && _scanFile2) {
+    _previewScanFile(_scanFile2, 'scan-img-2', 'scan-preview-2');
+    const btn = document.getElementById('scan-submit-btn');
+    if (btn) btn.disabled = false;
+  }
+}
+
+function _previewScanFile(file, imgId, wrapId) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(imgId);
+    const wrap = document.getElementById(wrapId);
+    if (img) img.src = e.target.result;
+    if (wrap) wrap.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function onScanFile1Change(input) {
+  if (!input.files || !input.files[0]) return;
+  _scanFile1 = input.files[0];
+  _previewScanFile(_scanFile1, 'scan-img-1', 'scan-preview-1');
+  const btn = document.getElementById('scan-next-btn');
+  if (btn) btn.disabled = false;
+}
+
+function onScanFile2Change(input) {
+  if (!input.files || !input.files[0]) return;
+  _scanFile2 = input.files[0];
+  _previewScanFile(_scanFile2, 'scan-img-2', 'scan-preview-2');
+  const btn = document.getElementById('scan-submit-btn');
+  if (btn) btn.disabled = false;
+}
+
+function _fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      // e.target.result is data:mime;base64,<data>
+      const b64 = e.target.result.split(',')[1];
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitScanLabel() {
+  if (!_scanFile1 || !_scanFile2) { alert('Please provide both photos.'); return; }
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header"><h2>&#128247; Scanning Label...</h2></div>
+        <div class="modal-body">
+          <div class="loading-box">
+            <div class="spinner"></div>
+            <p>Analyzing labels with Gemini&#8230;</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  try {
+    const [b64_1, b64_2] = await Promise.all([_fileToBase64(_scanFile1), _fileToBase64(_scanFile2)]);
+    const mime1 = _scanFile1.type || 'image/jpeg';
+    const mime2 = _scanFile2.type || 'image/jpeg';
+
+    const scanPrompt = `You are a food label reader. You will receive two images: the first is the Nutrition Facts panel, the second is the Ingredients list. Extract the data and return ONLY valid JSON with this exact structure:
+{"name":"Product name","servingSize":{"g":28,"desc":"1 oz"},"per100g":{"calories":0,"fat":0,"satFat":0,"carbs":0,"sugar":0,"fiber":0,"protein":0,"sodium":0},"ingredientsText":"full ingredients text verbatim","flags":{"dairy":false,"gluten":false,"eggs":false,"treeNuts":false,"peanuts":false,"soy":false,"shellfish":false,"fish":false,"sesame":false,"artificialColors":false,"artificialFlavors":false,"naturalFlavors":false,"preservatives":false,"msg":false,"hfcs":false,"nitrates":false,"addedSugars":false,"artificialSweeteners":false,"naturalSweeteners":false},"detectedAllergens":[],"detectedAdditives":[]}
+
+Rules for flags — set true if found in ingredients:
+dairy=milk/butter/cream/cheese/whey/lactose/casein; gluten=wheat/barley/rye/malt; eggs=egg/albumin/mayonnaise; treeNuts=almond/cashew/walnut/pecan/pistachio/hazelnut/macadamia; peanuts=peanut; soy=soy/tofu/lecithin(from soy); shellfish=shrimp/crab/lobster/scallop; fish=fish/salmon/tuna/anchovies/cod; sesame=sesame/tahini;
+artificialColors=Red 40/Yellow 5/Yellow 6/Blue 1/Blue 2/Green 3/caramel color; artificialFlavors="artificial flavor"/"artificial flavoring"; naturalFlavors="natural flavor"/"natural flavoring"/"natural flavours";
+preservatives=BHA/BHT/TBHQ/sodium benzoate/potassium sorbate; msg=monosodium glutamate; hfcs=high fructose corn syrup; nitrates=sodium nitrate/sodium nitrite;
+addedSugars=dextrose/sucrose/fructose/maltose/glucose/corn syrup/cane sugar/cane juice/brown sugar/turbinado/molasses/honey/agave/maple syrup/invert sugar/evaporated cane/fruit juice concentrate;
+artificialSweeteners=sucralose/aspartame/saccharin/acesulfame potassium/ace-k/neotame/advantame/cyclamate;
+naturalSweeteners=stevia/allulose/monk fruit/erythritol/xylitol/sorbitol/maltitol/luo han guo/reb a/steviol glycosides.
+Set detectedAllergens to array of human-readable allergen names found. Set detectedAdditives to array of specific additive/sweetener names found verbatim in the label.`;
+
+    const model = state.geminiModel || 'gemini-2.0-flash';
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.geminiApiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: scanPrompt },
+            { inlineData: { mimeType: mime1, data: b64_1 } },
+            { inlineData: { mimeType: mime2, data: b64_2 } }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 2048 }
+      })
+    });
+
+    if (!resp.ok) {
+      const errData = await resp.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `API error ${resp.status}`);
+    }
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let parsed;
+    try {
+      let cleaned = text.replace(/^```json?\s*/i,'').replace(/```\s*$/,'').trim();
+      try { parsed = JSON.parse(cleaned); }
+      catch(_) {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (!match) throw new Error('no JSON object found');
+        parsed = JSON.parse(match[0]);
+      }
+    } catch(e) {
+      throw new Error('Gemini returned invalid JSON. Try again.');
+    }
+    _scanFile1 = null; _scanFile2 = null;
+    showScanLabelReviewModal(parsed);
+  } catch(err) {
+    document.getElementById('modal-container').innerHTML = `
+      <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal">
+          <div class="modal-header"><h2>Scan Error</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+          <div class="modal-body">
+            <p style="color:#DC2626;margin-bottom:16px">&#9888;&#65039; ${escapeHtml(err.message)}</p>
+            <div class="form-actions">
+              <button class="btn-secondary" onclick="showIngredientDbModal()">&#8592; Back</button>
+              <button class="btn-primary" onclick="showScanLabelModal(1)">&#8635; Rescan</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+function showScanLabelReviewModal(parsed) {
+  _scanParsedResult = parsed;
+  const p = parsed.per100g || {};
+  const name = parsed.name || '';
+  const allergens = parsed.detectedAllergens || [];
+  const additives = parsed.detectedAdditives || [];
+  const allergenBadges = allergens.map(a => `<span class="flag-chip flag-chip-red">&#9888; ${escapeHtml(a)}</span>`).join('');
+  const additiveBadges = additives.map(a => `<span class="flag-chip flag-chip-orange">${escapeHtml(a)}</span>`).join('');
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h2>&#128247; Review Scanned Label</h2><button class="modal-close" onclick="closeModal()">&#x2715;</button></div>
+        <div class="modal-body">
+          ${allergens.length || additives.length ? `
+          <div style="background:#FEF9C3;border-radius:9px;padding:10px 14px;margin-bottom:12px">
+            ${allergens.length ? `<div style="margin-bottom:6px"><span style="font-size:0.75rem;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.05em">Allergens detected</span><br>${allergenBadges}</div>` : ''}
+            ${additives.length ? `<div><span style="font-size:0.75rem;font-weight:700;color:#D97706;text-transform:uppercase;letter-spacing:0.05em">Additives found</span><br>${additiveBadges}</div>` : ''}
+          </div>` : ''}
+          <div class="form-row">
+            <div class="form-group" style="grid-column:1/-1"><label>Name</label><input id="sl-name" type="text" value="${escapeHtml(name)}"></div>
+          </div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Per 100g</div>
+          <div class="form-row">
+            <div class="form-group"><label>Calories (kcal)</label><input id="sl-cal" type="number" min="0" value="${p.calories||0}"></div>
+            <div class="form-group"><label>Fat (g)</label><input id="sl-fat" type="number" min="0" step="0.1" value="${p.fat||0}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Carbs (g)</label><input id="sl-carbs" type="number" min="0" step="0.1" value="${p.carbs||0}"></div>
+            <div class="form-group"><label>Fiber (g)</label><input id="sl-fiber" type="number" min="0" step="0.1" value="${p.fiber||0}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Protein (g)</label><input id="sl-pro" type="number" min="0" step="0.1" value="${p.protein||0}"></div>
+            <div class="form-group"><label>Cost per 100g (USD)</label><input id="sl-cost" type="number" min="0" step="0.01" placeholder="0.00"></div>
+          </div>
+          <div class="form-group">
+            <label>Ingredients Text (read-only)</label>
+            <textarea id="sl-ingtext" style="min-height:80px;background:var(--bg)" readonly>${escapeHtml(parsed.ingredientsText||'')}</textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="showScanLabelModal(1)">&#8635; Rescan</button>
+            <button class="btn-primary" onclick="saveScanLabelIngredient()">Save Ingredient</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveScanLabelIngredient() {
+  const parsed = _scanParsedResult || {};
+  const name = document.getElementById('sl-name')?.value.trim();
+  if (!name) { alert('Name is required'); return; }
+  const ing = {
+    id: 'custom_' + uid(),
+    n: name,
+    cal:   parseFloat(document.getElementById('sl-cal')?.value)   || 0,
+    fat:   parseFloat(document.getElementById('sl-fat')?.value)   || 0,
+    carbs: parseFloat(document.getElementById('sl-carbs')?.value) || 0,
+    fiber: parseFloat(document.getElementById('sl-fiber')?.value) || 0,
+    pro:   parseFloat(document.getElementById('sl-pro')?.value)   || 0,
+    cost:  parseFloat(document.getElementById('sl-cost')?.value)  || 0,
+    units: { oz:28.35, cup:240, tbsp:15, tsp:5, g:1 },
+    flags: parsed.flags || {},
+    ingredientsText: parsed.ingredientsText || ''
+  };
+  if (!state.customIngredients) state.customIngredients = [];
+  state.customIngredients.push(ing);
+  saveLocalState();
+  _scanParsedResult = null;
+  showIngredientDbModal();
 }
 
 function showAddCustomIngredientModal() {
@@ -2870,6 +3533,633 @@ function saveBuilderRecipe() {
   saveState(); closeModal(); render(); pushItem(recipe, 'recipe');
 }
 
+// ========== WORKOUT TRACKER ==========
+
+function muscleBadgeClass(mg) {
+  const map = { 'Back':'muscle-back', 'Chest':'muscle-chest', 'Shoulders':'muscle-shoulders',
+    'Arms':'muscle-arms', 'Core':'muscle-core', 'Legs':'muscle-legs',
+    'Glutes/Hips':'muscle-gluteships', 'Cardio':'muscle-cardio' };
+  return map[mg] || 'muscle-custom';
+}
+
+function getAllExercises() {
+  return [...EXERCISE_DB, ...(state.customExercises || [])];
+}
+
+function todayDateStr() {
+  return toDateKey(new Date());
+}
+
+function initWorkoutForm() {
+  if (!_wkDate) _wkDate = todayDateStr();
+  if (!_wkOwner) _wkOwner = state.currentUser || 'P';
+  if (!_wkExercises) _wkExercises = [];
+}
+
+// ---- Render workout tab ----
+function renderWorkout() {
+  initWorkoutForm();
+  if (workoutView === 'history') return renderWorkoutHistory();
+  return renderWorkoutLog();
+}
+
+function renderWorkoutLog() {
+  const owner = _wkOwner || state.currentUser || 'P';
+  const exBlocks = _wkExercises.map((ex, exIdx) => renderExerciseBlock(ex, exIdx)).join('');
+  const hasExercises = _wkExercises.length > 0;
+
+  return `
+    <div class="workout-subheader">
+      <h2>&#128170; Log Workout</h2>
+      <button class="workout-view-link" onclick="workoutView='history';render()">View History &#8594;</button>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="form-row" style="margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Date</label>
+          <input type="date" id="wk-date" value="${escapeHtml(_wkDate)}" onchange="_wkDate=this.value">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Owner</label>
+          <div class="owner-selector">
+            <div class="owner-opt ${owner==='P'?'sel-p':''}" onclick="selectWkOwner(this,'P')">P</div>
+            <div class="owner-opt ${owner==='M'?'sel-m':''}" onclick="selectWkOwner(this,'M')">M</div>
+            <div class="owner-opt ${owner==='Shared'?'sel-shared':''}" onclick="selectWkOwner(this,'Shared')">Shared</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${hasExercises ? `<div class="cards-grid">${exBlocks}</div>` :
+      `<div class="empty-state" style="padding:32px 16px">
+        <div class="empty-icon">&#128170;</div>
+        <p>No exercises added yet. Click below to add one!</p>
+      </div>`}
+
+    <button class="add-btn" style="margin-top:10px" onclick="showExercisePickerModal()">+ Add Exercise</button>
+
+    <div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">🔁 Repeat this workout on:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,i) =>
+          `<button class="repeat-day-btn ${_wkRepeatDays.includes(i)?'active':''}" onclick="toggleRepeatDay(${i})">${d}</button>`
+        ).join('')}
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">${_wkRepeatDays.length ? '✅ Will be saved as a recurring template and shown on calendar.' : 'Leave empty for a one-time workout.'}</div>
+    </div>
+    <div class="save-workout-bar">
+      <div class="form-group" style="flex:1;margin-bottom:0">
+        <input type="text" id="wk-notes" placeholder="Workout notes (optional)..." value="${escapeHtml(_wkNotes)}" oninput="_wkNotes=this.value" style="width:100%">
+      </div>
+      <button class="btn-primary" onclick="saveWorkout()" ${!hasExercises?'disabled style="opacity:0.5;cursor:not-allowed"':''}>Save Workout</button>
+    </div>`;
+}
+
+function renderExerciseBlock(ex, exIdx) {
+  const badge = `<span class="muscle-badge ${muscleBadgeClass(ex.muscleGroup)}">${escapeHtml(ex.muscleGroup)}</span>`;
+  let setsHtml = '';
+  if (ex.type === 'cardio') {
+    const mins = Math.floor((ex.duration||0)/60);
+    const secs = ((ex.duration||0)%60).toString().padStart(2,'0');
+    setsHtml = `<div class="cardio-duration-wrap">
+      <label style="font-size:0.78rem;color:var(--text-muted);font-weight:600">Total Duration:</label>
+      <input class="set-input" style="width:55px" type="number" min="0" value="${mins}" placeholder="min"
+        onchange="updateCardioDuration(${exIdx},this.value,document.getElementById('wk-cardio-sec-${exIdx}').value)"> min
+      <input class="set-input" id="wk-cardio-sec-${exIdx}" style="width:55px" type="number" min="0" max="59" value="${secs}" placeholder="sec"
+        onchange="updateCardioDuration(${exIdx},document.getElementById('wk-cardio-sec-${exIdx}').previousElementSibling.value,this.value)"> sec
+    </div>`;
+  } else if (ex.type === 'timed') {
+    const rows = (ex.sets || []).map((s, sIdx) => {
+      const sm = Math.floor((s.duration||0)/60);
+      const ss = ((s.duration||0)%60).toString().padStart(2,'0');
+      return `<div class="set-row">
+        <span class="set-label">Set ${sIdx+1}</span>
+        <input class="set-input" style="width:52px" type="number" min="0" value="${sm}" placeholder="min"
+          onchange="updateTimedSet(${exIdx},${sIdx},this.value,document.getElementById('wk-ts-${exIdx}-${sIdx}').value)"> min
+        <input class="set-input" id="wk-ts-${exIdx}-${sIdx}" style="width:52px" type="number" min="0" max="59" value="${ss}" placeholder="sec"
+          onchange="updateTimedSet(${exIdx},${sIdx},this.previousElementSibling.previousElementSibling.value,this.value)"> sec
+        <button class="set-remove-btn" onclick="removeSet(${exIdx},${sIdx})" title="Remove set">&#x2715;</button>
+      </div>`;
+    }).join('');
+    setsHtml = rows + `<button class="add-set-btn" onclick="addTimedSet(${exIdx})">+ Add Set</button>`;
+  } else {
+    const rows = (ex.sets || []).map((s, sIdx) => {
+      return `<div class="set-row">
+        <span class="set-label">Set ${sIdx+1}</span>
+        <input class="set-input" type="number" min="0" step="0.5" value="${s.weight||''}" placeholder="wt"
+          onchange="updateSet(${exIdx},${sIdx},'weight',this.value)">
+        <span class="set-sep">${escapeHtml(s.unit||'lbs')}</span>
+        <span class="set-sep">&times;</span>
+        <input class="set-input" type="number" min="0" value="${s.reps||''}" placeholder="reps"
+          onchange="updateSet(${exIdx},${sIdx},'reps',this.value)">
+        <span class="set-sep">reps</span>
+        <button class="set-unit-toggle" onclick="toggleSetUnit(${exIdx},${sIdx})">${escapeHtml(s.unit||'lbs')}</button>
+        <button class="set-remove-btn" onclick="removeSet(${exIdx},${sIdx})" title="Remove set">&#x2715;</button>
+      </div>`;
+    }).join('');
+    setsHtml = rows + `<button class="add-set-btn" onclick="addSet(${exIdx})">+ Add Set</button>`;
+  }
+  const mgOptions = ['Back','Chest','Shoulders','Arms','Core','Legs','Glutes/Hips','Cardio']
+    .map(mg => `<option value="${mg}" ${ex.muscleGroup===mg?'selected':''}>${mg}</option>`).join('');
+  const eqOptions = ['Cable Machine','Dumbbell','Barbell','Machine','Bodyweight','Resistance Band','Kettlebell','Cardio Machine','Other']
+    .map(eq => `<option value="${eq}" ${ex.equipment===eq?'selected':''}>${eq}</option>`).join('');
+  const tsMin = Math.floor((ex.timeSpent||0)/60);
+  const tsSec = ((ex.timeSpent||0)%60).toString().padStart(2,'0');
+  return `<div class="exercise-block">
+    <div class="exercise-block-header">
+      <span class="exercise-block-name">${escapeHtml(ex.name)}</span>
+      <button class="exercise-remove-btn" onclick="removeExercise(${exIdx})" title="Remove exercise">&#x2715;</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center">
+      <select class="ex-meta-select" onchange="_wkExercises[${exIdx}].muscleGroup=this.value" title="Muscle group">${mgOptions}</select>
+      <select class="ex-meta-select" onchange="_wkExercises[${exIdx}].equipment=this.value" title="Equipment">${eqOptions}</select>
+    </div>
+    ${setsHtml}
+    <div class="cardio-duration-wrap" style="margin-top:8px;border-top:1px dashed var(--border);padding-top:7px">
+      <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600">⏱ Time spent:</span>
+      <input class="set-input" style="width:52px" type="number" min="0" value="${tsMin||''}" placeholder="min"
+        onchange="updateExTimeSpent(${exIdx},this.value,document.getElementById('wk-ts-spent-sec-${exIdx}').value)"> min
+      <input class="set-input" id="wk-ts-spent-sec-${exIdx}" style="width:52px" type="number" min="0" max="59" value="${tsSec!=='00'?tsSec:''}" placeholder="sec"
+        onchange="updateExTimeSpent(${exIdx},this.previousElementSibling.previousElementSibling.value,this.value)"> sec
+    </div>
+  </div>`;
+}
+
+function selectWkOwner(el, val) {
+  _wkOwner = val;
+  const container = el.parentElement;
+  container.querySelectorAll('.owner-opt').forEach(o => o.className = 'owner-opt');
+  if (val === 'P') el.className = 'owner-opt sel-p';
+  else if (val === 'M') el.className = 'owner-opt sel-m';
+  else el.className = 'owner-opt sel-shared';
+}
+
+function addExerciseToLog(ex) {
+  const entry = {
+    exId: ex.id,
+    name: ex.name,
+    muscleGroup: ex.muscleGroup,
+    equipment: ex.equipment || 'Other',
+    type: ex.type,
+    timeSpent: 0,
+    notes: ''
+  };
+  if (ex.type === 'cardio') {
+    entry.duration = 0;
+    entry.durationLabel = '0:00';
+  } else if (ex.type === 'timed') {
+    entry.sets = [{ duration: 30 }];
+  } else {
+    entry.sets = [{ weight: '', reps: '', unit: 'lbs' }];
+  }
+  _wkExercises.push(entry);
+  closeModal();
+  render();
+}
+
+function removeExercise(idx) {
+  _wkExercises.splice(idx, 1);
+  render();
+}
+
+function addSet(exIdx) {
+  const ex = _wkExercises[exIdx];
+  if (!ex || !ex.sets) return;
+  const last = ex.sets[ex.sets.length - 1] || { weight: '', reps: '', unit: 'lbs' };
+  ex.sets.push({ weight: last.weight, reps: last.reps, unit: last.unit || 'lbs' });
+  render();
+}
+
+function removeSet(exIdx, sIdx) {
+  const ex = _wkExercises[exIdx];
+  if (!ex || !ex.sets) return;
+  ex.sets.splice(sIdx, 1);
+  if (ex.sets.length === 0) ex.sets.push({ weight: '', reps: '', unit: 'lbs' });
+  render();
+}
+
+function updateSet(exIdx, sIdx, field, value) {
+  const ex = _wkExercises[exIdx];
+  if (!ex || !ex.sets || !ex.sets[sIdx]) return;
+  ex.sets[sIdx][field] = field === 'weight' || field === 'reps' ? (parseFloat(value) || '') : value;
+}
+
+function toggleSetUnit(exIdx, sIdx) {
+  const ex = _wkExercises[exIdx];
+  if (!ex || !ex.sets || !ex.sets[sIdx]) return;
+  ex.sets[sIdx].unit = ex.sets[sIdx].unit === 'lbs' ? 'kg' : 'lbs';
+  render();
+}
+
+function updateExTimeSpent(exIdx, mins, secs) {
+  if (_wkExercises[exIdx] !== undefined) {
+    _wkExercises[exIdx].timeSpent = (parseInt(mins)||0)*60 + Math.min(59, parseInt(secs)||0);
+  }
+}
+function updateTimedSet(exIdx, sIdx, mins, secs) {
+  const m = parseInt(mins) || 0;
+  const s = Math.min(59, parseInt(secs) || 0);
+  if (_wkExercises[exIdx] && _wkExercises[exIdx].sets[sIdx] !== undefined) {
+    _wkExercises[exIdx].sets[sIdx].duration = m * 60 + s;
+  }
+}
+function addTimedSet(exIdx) {
+  if (!_wkExercises[exIdx]) return;
+  const last = _wkExercises[exIdx].sets.slice(-1)[0];
+  _wkExercises[exIdx].sets.push({ duration: last ? last.duration : 30 });
+  render();
+}
+function prefillWorkoutFromTemplate(tmplId, dateKey) {
+  const t = (state.workoutTemplates || []).find(x => x.id === tmplId);
+  if (!t) return;
+  _wkExercises = JSON.parse(JSON.stringify(t.exercises));
+  _wkNotes = t.name || '';
+  _wkDate = dateKey;
+  _wkOwner = t.owner || state.currentUser || 'P';
+  _wkRepeatDays = [];
+  _wkEditingId = null;
+  workoutView = 'log';
+  switchTab('workout');
+  render();
+}
+function deleteWorkoutTemplate(id) {
+  if (!confirm('Delete this recurring workout template?')) return;
+  state.workoutTemplates = (state.workoutTemplates || []).filter(t => t.id !== id);
+  saveState();
+  render();
+}
+function toggleRepeatDay(dayIdx) {
+  const i = _wkRepeatDays.indexOf(dayIdx);
+  if (i === -1) _wkRepeatDays.push(dayIdx);
+  else _wkRepeatDays.splice(i, 1);
+  render();
+}
+function updateCardioDuration(exIdx, mins, secs) {
+  const ex = _wkExercises[exIdx];
+  if (!ex) return;
+  const m = parseInt(mins) || 0;
+  const s = parseInt(secs) || 0;
+  ex.duration = m * 60 + s;
+  ex.durationLabel = m + ':' + s.toString().padStart(2, '0');
+}
+
+function saveWorkout() {
+  // Capture any pending input values from the DOM before saving
+  const dateEl = document.getElementById('wk-date');
+  if (dateEl) _wkDate = dateEl.value;
+  const notesEl = document.getElementById('wk-notes');
+  if (notesEl) _wkNotes = notesEl.value;
+
+  if (!_wkExercises.length) { alert('Add at least one exercise before saving.'); return; }
+
+  // Check if there's already a workout for this date (and not editing that one)
+  const existingForDate = (state.workouts || []).find(w => w.date === _wkDate && w.id !== _wkEditingId);
+  if (existingForDate) {
+    if (!confirm(`A workout for ${_wkDate} already exists. Save anyway?`)) return;
+  }
+
+  const workout = {
+    id: _wkEditingId || uid(),
+    date: _wkDate,
+    owner: _wkOwner || state.currentUser || 'P',
+    exercises: JSON.parse(JSON.stringify(_wkExercises)),
+    notes: _wkNotes,
+    savedAt: Date.now()
+  };
+
+  if (!state.workouts) state.workouts = [];
+  if (_wkEditingId) {
+    state.workouts = state.workouts.map(w => w.id === _wkEditingId ? workout : w);
+  } else {
+    state.workouts.push(workout);
+  }
+
+  // Save as recurring template if days selected
+  if (_wkRepeatDays.length) {
+    if (!state.workoutTemplates) state.workoutTemplates = [];
+    const tmpl = {
+      id: 'tmpl_' + uid(),
+      name: _wkNotes || workout.exercises.map(e => e.name).slice(0,2).join(', '),
+      repeatDays: [..._wkRepeatDays],
+      exercises: JSON.parse(JSON.stringify(_wkExercises)),
+      owner: _wkOwner || state.currentUser || 'P'
+    };
+    state.workoutTemplates.push(tmpl);
+  }
+
+  // Reset form
+  _wkExercises = [];
+  _wkNotes = '';
+  _wkDate = todayDateStr();
+  _wkOwner = state.currentUser || 'P';
+  _wkEditingId = null;
+  _wkRepeatDays = [];
+
+  saveState();
+  workoutView = 'history';
+  render();
+}
+
+// ---- History view ----
+function renderWorkoutHistory() {
+  const workouts = (state.workouts || [])
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 90); // show last 90 entries
+
+  let html = `
+    <div class="workout-subheader">
+      <h2>&#128170; Workout History</h2>
+      <button class="workout-view-link" onclick="workoutView='log';_wkEditingId=null;_wkExercises=[];_wkNotes='';_wkDate=todayDateStr();render()">&#8592; Log Workout</button>
+    </div>`;
+
+  if (!workouts.length) {
+    html += `<div class="empty-state"><div class="empty-icon">&#128170;</div><p>No workouts logged yet. Start logging!</p></div>`;
+    return html;
+  }
+
+  workouts.forEach(w => {
+    const exSummary = (w.exercises || []).map(ex => {
+      let detail = '';
+      if (ex.type === 'cardio') {
+        detail = ex.durationLabel || '';
+      } else {
+        const validSets = (ex.sets || []).filter(s => s.weight !== '' || s.reps !== '');
+        detail = validSets.length ? validSets.map(s => `${s.weight||'?'}${s.unit||'lbs'}&times;${s.reps||'?'}`).join(', ') : `${(ex.sets||[]).length} set${(ex.sets||[]).length!==1?'s':''}`;
+      }
+      return `<div class="workout-card-ex">
+        <span class="workout-card-ex-name">${escapeHtml(ex.name)}</span>
+        <span class="muscle-badge ${muscleBadgeClass(ex.muscleGroup)}" style="font-size:0.62rem">${escapeHtml(ex.muscleGroup)}</span>
+        <span class="workout-card-ex-sets">${detail}</span>
+      </div>`;
+    }).join('');
+
+    html += `<div class="workout-card">
+      <div class="workout-card-header">
+        <span class="workout-card-date">${formatDate(w.date + 'T12:00:00')}</span>
+        ${ownerBadge(w.owner)}
+        <span style="font-size:0.78rem;color:var(--text-muted)">${(w.exercises||[]).length} exercise${(w.exercises||[]).length!==1?'s':''}</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="card-btn" onclick="editWorkout('${w.id}')">Edit</button>
+          <button class="card-btn danger" onclick="deleteWorkout('${w.id}')">Delete</button>
+        </div>
+      </div>
+      ${exSummary}
+      ${w.notes ? `<div class="card-notes" style="margin-top:6px">${escapeHtml(w.notes)}</div>` : ''}
+    </div>`;
+  });
+
+  // Recurring templates section
+  const templates = state.workoutTemplates || [];
+  if (templates.length) {
+    const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    html += `<div style="margin-top:20px;padding-top:14px;border-top:2px solid var(--border)">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">🔁 Recurring Templates</div>`;
+    templates.forEach(t => {
+      const dayLabels = (t.repeatDays||[]).sort().map(d => DAYS[d]).join(' · ');
+      html += `<div class="workout-card" style="border-left:3px solid #7C3AED">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:0.9rem">${escapeHtml(t.name||'Workout')}</span>
+          <span style="font-size:0.75rem;background:#F5F3FF;color:#7C3AED;border-radius:20px;padding:2px 10px;font-weight:600">${dayLabels}</span>
+          <span style="font-size:0.75rem;color:var(--text-muted)">${(t.exercises||[]).length} exercise${(t.exercises||[]).length!==1?'s':''}</span>
+        </div>
+        <div style="margin-top:6px;font-size:0.78rem;color:var(--text-muted)">${(t.exercises||[]).map(e=>escapeHtml(e.name)).join(', ')}</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-secondary" style="font-size:0.78rem;padding:4px 12px" onclick="prefillWorkoutFromTemplate('${t.id}',todayDateStr())">Log Today</button>
+          <button class="btn-secondary" style="font-size:0.78rem;padding:4px 12px;color:#ef4444;border-color:#ef4444" onclick="deleteWorkoutTemplate('${t.id}')">Delete</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  return html;
+}
+
+function deleteWorkout(id) {
+  if (!confirm('Delete this workout?')) return;
+  state.workouts = (state.workouts || []).filter(w => w.id !== id);
+  saveState();
+  render();
+}
+
+function editWorkout(id) {
+  const w = (state.workouts || []).find(x => x.id === id);
+  if (!w) return;
+  _wkEditingId = id;
+  _wkDate = w.date;
+  _wkOwner = w.owner;
+  _wkExercises = JSON.parse(JSON.stringify(w.exercises || []));
+  _wkNotes = w.notes || '';
+  workoutView = 'log';
+  render();
+}
+
+// ---- Exercise Picker Modal ----
+function showExercisePickerModal() {
+  _exPickerSearch = '';
+  _exPickerMuscleFilter = 'All';
+  _renderExPickerModal();
+}
+
+function _renderExPickerModal() {
+  const muscleGroups = ['All','Back','Chest','Shoulders','Arms','Core','Legs','Glutes/Hips','Cardio'];
+  const chipHtml = muscleGroups.map(mg =>
+    `<button class="filter-chip ${_exPickerMuscleFilter===mg?'active':''}" id="ex-mg-${mg.replace('/','_')}"
+      onclick="_exPickerMuscleFilter='${mg}';_renderExPickerList();document.querySelectorAll('.mg-filter-chips .filter-chip').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${mg}</button>`
+  ).join('');
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>&#128170; Choose Exercise</h2>
+          <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:10px">
+            <input type="text" id="ex-picker-search" placeholder="Search exercises..."
+              oninput="_exPickerSearch=this.value;_renderExPickerList()"
+              style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;font-size:0.88rem"
+              autocomplete="off" spellcheck="false">
+          </div>
+          <div class="mg-filter-chips">${chipHtml}</div>
+          <div id="ex-picker-list" style="max-height:340px;overflow-y:auto;border:1.5px solid var(--border);border-radius:9px;margin-bottom:12px"></div>
+          <div style="border-top:2px solid var(--border);padding:12px 0 4px">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Custom Exercise</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="custom-ex-name" placeholder="Exercise name..." style="flex:1;min-width:140px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.85rem">
+              <select id="custom-ex-mg" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.85rem;background:var(--card-bg)">
+                ${['Back','Chest','Shoulders','Arms','Core','Legs','Glutes/Hips','Cardio'].map(mg=>`<option value="${mg}">${mg}</option>`).join('')}
+              </select>
+              <select id="custom-ex-eq" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.85rem;background:var(--card-bg)">
+                ${['Cable Machine','Dumbbell','Barbell','Machine','Bodyweight','Resistance Band','Kettlebell','Cardio Machine','Other'].map(eq=>`<option value="${eq}">${eq}</option>`).join('')}
+              </select>
+              <select id="custom-ex-type" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.85rem;background:var(--card-bg)">
+                <option value="strength">Strength (sets × reps)</option>
+                <option value="timed">Timed (sets × duration)</option>
+                <option value="cardio">Cardio (total duration)</option>
+              </select>
+              <button class="btn-primary" style="padding:7px 14px" onclick="addCustomExerciseToLog()">+ Use</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  _renderExPickerList();
+  document.getElementById('ex-picker-search').focus();
+}
+
+function _renderExPickerList() {
+  const listEl = document.getElementById('ex-picker-list');
+  if (!listEl) return;
+  const allEx = getAllExercises();
+  const searchLower = _exPickerSearch.toLowerCase();
+  const filtered = allEx.filter(ex => {
+    const matchSearch = !searchLower || ex.name.toLowerCase().includes(searchLower) || ex.muscleGroup.toLowerCase().includes(searchLower);
+    const matchMuscle = _exPickerMuscleFilter === 'All' || ex.muscleGroup === _exPickerMuscleFilter;
+    return matchSearch && matchMuscle;
+  });
+  const customIds = new Set((state.customExercises||[]).map(e => e.id));
+  listEl.innerHTML = filtered.length
+    ? filtered.map(ex => {
+        const isCustom = customIds.has(ex.id);
+        const deleteBtn = isCustom
+          ? `<button class="exercise-remove-btn" style="margin-left:4px;font-size:0.8rem" title="Delete custom exercise"
+               onclick="event.stopPropagation();deleteCustomExercise('${ex.id}')">&#x2715;</button>`
+          : '';
+        const customTag = isCustom
+          ? `<span style="font-size:0.68rem;background:var(--sky-bg);color:var(--sky);border-radius:4px;padding:1px 5px;margin-left:4px">custom</span>`
+          : '';
+        return `<div class="ex-pick-row" onclick='addExerciseToLog(${JSON.stringify(ex)})'>
+          <div style="flex:1;min-width:0">
+            <div class="ex-pick-name">${escapeHtml(ex.name)}${customTag}</div>
+            <div class="ex-pick-equip">${escapeHtml(ex.equipment||'')}</div>
+          </div>
+          <span class="muscle-badge ${muscleBadgeClass(ex.muscleGroup)}">${escapeHtml(ex.muscleGroup)}</span>
+          ${deleteBtn}
+        </div>`;
+      }).join('')
+    : '<div class="empty-state" style="padding:24px"><p>No exercises match your search.</p></div>';
+}
+
+function addCustomExerciseToLog() {
+  const name = (document.getElementById('custom-ex-name')?.value || '').trim();
+  if (!name) { alert('Please enter an exercise name.'); return; }
+  const mg  = document.getElementById('custom-ex-mg')?.value  || 'Back';
+  const eq  = document.getElementById('custom-ex-eq')?.value  || 'Other';
+  const type = document.getElementById('custom-ex-type')?.value || 'strength';
+  const ex = { id: 'custom_ex_' + uid(), name, muscleGroup: mg, equipment: eq, type };
+  if (!state.customExercises) state.customExercises = [];
+  if (!state.customExercises.find(e => e.name.toLowerCase() === name.toLowerCase())) {
+    state.customExercises.push(ex);
+    saveLocalState();
+  }
+  addExerciseToLog(ex);
+}
+
+function deleteCustomExercise(id) {
+  if (!confirm('Remove this custom exercise?')) return;
+  state.customExercises = (state.customExercises || []).filter(e => e.id !== id);
+  saveLocalState();
+  _renderExPickerList();
+}
+
+// ---- Workout Summary Modal (read-only, from calendar chip) ----
+function showWorkoutSummaryModal(workoutId) {
+  const w = (state.workouts || []).find(x => x.id === workoutId);
+  if (!w) return;
+
+  const exRows = (w.exercises || []).map(ex => {
+    let detail = '';
+    if (ex.type === 'cardio') {
+      detail = `Duration: ${ex.durationLabel || '0:00'}`;
+    } else {
+      const sets = (ex.sets || []);
+      detail = sets.map((s, i) => `<div style="font-size:0.82rem;color:var(--text-muted)">Set ${i+1}: ${s.weight||'?'} ${s.unit||'lbs'} &times; ${s.reps||'?'} reps</div>`).join('');
+    }
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <strong style="font-size:0.92rem">${escapeHtml(ex.name)}</strong>
+        <span class="muscle-badge ${muscleBadgeClass(ex.muscleGroup)}">${escapeHtml(ex.muscleGroup)}</span>
+        ${ex.equipment ? `<span style="font-size:0.72rem;color:var(--text-muted)">${escapeHtml(ex.equipment)}</span>` : ''}
+      </div>
+      ${detail}
+    </div>`;
+  }).join('');
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <div>
+            <h2>&#128170; Workout — ${formatDate(w.date + 'T12:00:00')}</h2>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px">${ownerBadge(w.owner)} &nbsp;${(w.exercises||[]).length} exercise${(w.exercises||[]).length!==1?'s':''}</div>
+          </div>
+          <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+          ${exRows || '<p style="color:var(--text-muted)">No exercises recorded.</p>'}
+          ${w.notes ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:0.85rem;color:var(--text-muted);font-style:italic">${escapeHtml(w.notes)}</div>` : ''}
+          <div class="form-actions" style="margin-top:16px">
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+            <button class="btn-primary" onclick="closeModal();editWorkout('${w.id}');switchTab('workout')">Edit Workout</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ========== THEME ==========
+const THEMES = {
+  default:  { bg:'#EEF4FB', card:'#FFFFFF', header:'#0D1B2A', accent:'#29B6F6', highlight:'#FFD600', text:'#0D1B2A' },
+  forest:   { bg:'#E8F5E9', card:'#F1FAF2', header:'#1B3A2A', accent:'#43A047', highlight:'#AEEA00', text:'#1B2E1F' },
+  sunset:   { bg:'#FFF7ED', card:'#FFFFFF', header:'#7C2D12', accent:'#F97316', highlight:'#FCD34D', text:'#1C0A00' },
+  midnight: { bg:'#2D2B55', card:'#1E1B4B', header:'#13111E', accent:'#818CF8', highlight:'#A78BFA', text:'#E2E8F0' },
+  rose:     { bg:'#FFF1F2', card:'#FFFFFF', header:'#881337', accent:'#F43F5E', highlight:'#FDA4AF', text:'#1C0007' },
+  slate:    { bg:'#F1F5F9', card:'#FFFFFF', header:'#1E293B', accent:'#38BDF8', highlight:'#94A3B8', text:'#0F172A' },
+};
+function applyTheme(t) {
+  const r = document.documentElement;
+  r.style.setProperty('--bg',        t.bg);
+  r.style.setProperty('--card-bg',   t.card);
+  r.style.setProperty('--header-from', t.header);
+  r.style.setProperty('--header-to',   adjustColor(t.header, 30));
+  r.style.setProperty('--sky',        t.accent);
+  r.style.setProperty('--sky-bg',     hexWithAlpha(t.accent, 0.15));
+  r.style.setProperty('--yellow',     t.highlight);
+  r.style.setProperty('--yellow-bg',  hexWithAlpha(t.highlight, 0.15));
+  r.style.setProperty('--text',       t.text);
+  r.style.setProperty('--border',     hexWithAlpha(t.text, 0.15));
+}
+function hexWithAlpha(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function adjustColor(hex, amount) {
+  let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  r = Math.min(255, r + amount); g = Math.min(255, g + amount); b = Math.min(255, b + amount);
+  return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+function applyThemeFromState() {
+  const t = state.theme;
+  if (t) applyTheme(t);
+}
+function setPresetTheme(name) {
+  const t = THEMES[name];
+  if (!t) return;
+  state.theme = { ...t, preset: name };
+  applyTheme(t);
+  saveLocalState();
+  // update pickers to match
+  ['bg','card','header','accent','highlight','text'].forEach(k => {
+    const el = document.getElementById('tc-' + k);
+    if (el) el.value = t[k];
+  });
+  document.querySelectorAll('.theme-preset').forEach(b => b.classList.toggle('active', b.dataset.theme === name));
+}
+
 // ========== SETTINGS ==========
 function openSettings() {
   const panel = document.getElementById('settings-panel');
@@ -2894,6 +4184,14 @@ function openSettings() {
   if (skEl) skEl.value = state.supabaseKey || '';
   const tr = document.getElementById('sync-test-result');
   if (tr) { tr.textContent = ''; }
+  // populate theme pickers
+  const th = state.theme || THEMES.default;
+  ['bg','card','header','accent','highlight','text'].forEach(k => {
+    const el = document.getElementById('tc-' + k);
+    if (el) el.value = th[k] || THEMES.default[k];
+  });
+  const activePreset = (state.theme && state.theme.preset) || 'default';
+  document.querySelectorAll('.theme-preset').forEach(b => b.classList.toggle('active', b.dataset.theme === activePreset));
   panel.style.display = 'flex';
   panel.setAttribute('aria-hidden','false');
 }
@@ -2919,6 +4217,14 @@ function saveSettings() {
   pushItem({ id: 'dailygoals', ...state.dailyGoals }, 'dailygoals');
   if (su) state.supabaseUrl = su.value.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   if (sk) state.supabaseKey = sk.value.trim();
+  // save theme colors from pickers
+  const customTheme = {};
+  ['bg','card','header','accent','highlight','text'].forEach(k => {
+    const el = document.getElementById('tc-' + k);
+    if (el) customTheme[k] = el.value;
+  });
+  state.theme = { ...customTheme, preset: (state.theme && state.theme.preset) || 'default' };
+  applyTheme(customTheme);
   saveLocalState();
   closeSettings();
   render();
@@ -2958,6 +4264,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 loadState();
+applyThemeFromState();
 if (!state.currentUser) {
   document.getElementById('who-overlay').style.display = 'flex';
 } else {
@@ -2973,6 +4280,10 @@ document.addEventListener('visibilitychange', () => {
 document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
 document.getElementById('settings-cancel-btn').addEventListener('click', closeSettings);
 document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
+document.getElementById('theme-presets').addEventListener('click', e => {
+  const btn = e.target.closest('.theme-preset');
+  if (btn) setPresetTheme(btn.dataset.theme);
+});
 document.getElementById('show-hide-key-btn').addEventListener('click', toggleApiKeyVisibility);
 document.getElementById('settings-panel').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
