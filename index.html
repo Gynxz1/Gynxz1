@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Home Hub">
 <link rel="apple-touch-icon" href="/icon-192.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
   /* Core palette */
@@ -809,7 +810,7 @@ select.filter-select-input {
 </div>
 
 <div id="header">
-  <h1>&#127968; Home Hub <span style="font-size:0.6rem;font-weight:400;opacity:0.55;letter-spacing:0.05em">v1.9</span></h1>
+  <h1>&#127968; Home Hub <span style="font-size:0.6rem;font-weight:400;opacity:0.55;letter-spacing:0.05em">v2.0</span></h1>
   <div id="sync-indicator" style="font-size:0.72rem;letter-spacing:0.02em;min-width:60px;text-align:center"></div>
   <div class="user-toggle">
     <button class="user-btn" id="btn-p" onclick="setUser('P')">P</button>
@@ -947,7 +948,8 @@ let state = {
   dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 },
   workouts: [],
   workoutTemplates: [],
-  customExercises: []
+  customExercises: [],
+  dailyClasses: {}
 };
 
 // ========== EXERCISE DATABASE ==========
@@ -1552,6 +1554,26 @@ function renderMealPlan() {
       }
       html += `</div>`;
     });
+
+    // Daily fitness classes section
+    const CLASS_TYPES = ['Spinning','HIIT','Yoga','Pilates','Zumba','Boxing','Kickboxing','CrossFit','Barre','Boot Camp','Trainer Session','Swimming','Dance','Martial Arts','Stretching','Other'];
+    const classTypeOptions = '<option value="">＋ Add class</option>' + CLASS_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+    const dayClasses = (state.dailyClasses && state.dailyClasses[key]) ? state.dailyClasses[key] : [];
+    html += `<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:5px 6px;margin-top:2px">
+      <div style="font-size:0.62rem;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">Classes</div>`;
+    for (let slotIdx = 0; slotIdx < 3; slotIdx++) {
+      const cls = dayClasses[slotIdx] || { type: '', duration: '' };
+      const filled = !!cls.type;
+      html += `<div style="display:flex;align-items:center;gap:3px;margin-bottom:3px">
+        ${filled ? '<span style="font-size:0.7rem">🏃</span>' : ''}
+        <select style="font-size:0.72rem;border:1px solid #86EFAC;border-radius:5px;padding:2px 3px;background:#fff;color:#166534;flex:1;min-width:0;max-width:80px" onchange="setDailyClass('${key}',${slotIdx},'type',this.value)">
+          ${CLASS_TYPES.map(t => `<option value="${t}" ${cls.type===t?'selected':''}>${t}</option>`).join('')}
+          ${!cls.type ? '<option value="" selected>＋ Add class</option>' : ''}
+        </select>
+        <input type="number" min="1" max="240" placeholder="min" value="${cls.duration||''}" style="width:38px;font-size:0.72rem;border:1px solid #86EFAC;border-radius:5px;padding:2px 4px;background:#fff;color:#166534" onchange="setDailyClass('${key}',${slotIdx},'duration',this.value)">
+      </div>`;
+    }
+    html += `</div>`;
 
     // Logged workout chip for this day
     const dayWorkout = (state.workouts || []).find(w => w.date === key);
@@ -3593,7 +3615,10 @@ function renderWorkoutLog() {
   return `
     <div class="workout-subheader">
       <h2>&#128170; Log Workout</h2>
-      <button class="workout-view-link" onclick="workoutView='history';render()">View History &#8594;</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="workout-view-link" onclick="showExerciseProgressModal()">&#128200; Progress</button>
+        <button class="workout-view-link" onclick="workoutView='history';render()">View History &#8594;</button>
+      </div>
     </div>
     <div class="card" style="margin-bottom:14px">
       <div class="form-row" style="margin-bottom:10px">
@@ -3894,6 +3919,7 @@ function renderWorkoutHistory() {
       <h2>&#128170; Workout History</h2>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="print-btn" onclick="showPrintModal('workout')">&#128424; Print</button>
+        <button class="workout-view-link" onclick="showExerciseProgressModal()">&#128200; Progress</button>
         <button class="workout-view-link" onclick="workoutView='log';_wkEditingId=null;_wkExercises=[];_wkNotes='';_wkDate=todayDateStr();render()">&#8592; Log Workout</button>
       </div>
     </div>`;
@@ -3904,7 +3930,8 @@ function renderWorkoutHistory() {
   }
 
   workouts.forEach(w => {
-    const exSummary = (w.exercises || []).map(ex => {
+    const sortedExercises = (w.exercises || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const exSummary = sortedExercises.map(ex => {
       let detail = '';
       if (ex.type === 'cardio') {
         detail = ex.durationLabel || '';
@@ -3968,6 +3995,14 @@ function deleteWorkout(id) {
   render();
 }
 
+function setDailyClass(dateKey, slotIdx, field, value) {
+  if (!state.dailyClasses) state.dailyClasses = {};
+  if (!state.dailyClasses[dateKey]) state.dailyClasses[dateKey] = [];
+  while (state.dailyClasses[dateKey].length <= slotIdx) state.dailyClasses[dateKey].push({ type: '', duration: '' });
+  state.dailyClasses[dateKey][slotIdx][field] = value;
+  saveLocalState();
+}
+
 function editWorkout(id) {
   const w = (state.workouts || []).find(x => x.id === id);
   if (!w) return;
@@ -3978,6 +4013,255 @@ function editWorkout(id) {
   _wkNotes = w.notes || '';
   workoutView = 'log';
   render();
+}
+
+// ---- Exercise Progress Modal ----
+let _progressChart = null;
+
+function showExerciseProgressModal() {
+  const workouts = state.workouts || [];
+  // Gather all unique exercise names from logged workouts
+  const exNamesSet = new Set();
+  workouts.forEach(w => (w.exercises || []).forEach(ex => exNamesSet.add(ex.name)));
+  const exNames = Array.from(exNamesSet).sort((a, b) => a.localeCompare(b));
+
+  if (!exNames.length) {
+    alert('No workouts logged yet. Log a workout first to view progress charts.');
+    return;
+  }
+
+  const exOptions = exNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>&#128200; Exercise Progress</h2>
+          <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body" style="min-height:500px">
+          <div class="modal-tabs" id="progress-view-tabs">
+            <button class="modal-tab active" onclick="switchProgressTab('single',this)">Single Exercise</button>
+            <button class="modal-tab" onclick="switchProgressTab('all',this)">All Exercises</button>
+          </div>
+
+          <div id="progress-single-view">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end">
+              <div class="form-group" style="margin-bottom:0;flex:2;min-width:140px">
+                <label>Exercise</label>
+                <select id="prog-ex-select" onchange="updateProgressChart()">${exOptions}</select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;flex:1;min-width:120px">
+                <label>Metric</label>
+                <select id="prog-metric-select" onchange="updateProgressChart()">
+                  <option value="maxWeight">Max Weight</option>
+                  <option value="volume">Total Volume</option>
+                  <option value="reps">Total Reps</option>
+                  <option value="avgWeight">Avg Weight</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;flex:1;min-width:120px">
+                <label>Period</label>
+                <select id="prog-period-select" onchange="updateProgressChart()">
+                  <option value="all">All Time</option>
+                  <option value="30">Last 30 Days</option>
+                  <option value="90">Last 90 Days</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+            </div>
+            <div style="position:relative;height:300px;margin-bottom:12px">
+              <canvas id="progress-chart" style="width:100%;height:300px"></canvas>
+            </div>
+            <div id="progress-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+          </div>
+
+          <div id="progress-all-view" style="display:none">
+            <div style="position:relative;height:360px;margin-bottom:12px">
+              <canvas id="progress-all-chart" style="width:100%;height:360px"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  updateProgressChart();
+}
+
+function switchProgressTab(tab, btn) {
+  document.querySelectorAll('#progress-view-tabs .modal-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('progress-single-view').style.display = tab === 'single' ? '' : 'none';
+  document.getElementById('progress-all-view').style.display = tab === 'all' ? '' : 'none';
+  if (tab === 'all') updateAllExercisesChart();
+  else updateProgressChart();
+}
+
+function _getProgressData(exName, metric, period) {
+  const workouts = state.workouts || [];
+  const now = new Date();
+  let cutoff = null;
+  if (period === '30') { cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30); }
+  else if (period === '90') { cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 90); }
+  else if (period === 'year') { cutoff = new Date(now.getFullYear(), 0, 1); }
+
+  const points = [];
+  workouts
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .forEach(w => {
+      if (cutoff && new Date(w.date + 'T12:00:00') < cutoff) return;
+      const exList = (w.exercises || []).filter(ex => ex.name === exName);
+      if (!exList.length) return;
+      let val = null;
+      exList.forEach(ex => {
+        const sets = (ex.sets || []).filter(s => s.reps !== '' || s.weight !== '');
+        if (metric === 'maxWeight') {
+          const weights = sets.map(s => parseFloat(s.weight) || 0).filter(v => v > 0);
+          if (weights.length) val = Math.max(val || 0, ...weights);
+        } else if (metric === 'volume') {
+          const vol = sets.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0);
+          val = (val || 0) + vol;
+        } else if (metric === 'reps') {
+          const reps = sets.reduce((sum, s) => sum + (parseFloat(s.reps) || 0), 0);
+          val = (val || 0) + reps;
+        } else if (metric === 'avgWeight') {
+          const weights = sets.map(s => parseFloat(s.weight) || 0).filter(v => v > 0);
+          if (weights.length) {
+            const avg = weights.reduce((a, b) => a + b, 0) / weights.length;
+            val = val === null ? avg : (val + avg) / 2;
+          }
+        }
+      });
+      if (val !== null) points.push({ date: w.date, value: Math.round(val * 10) / 10 });
+    });
+  return points;
+}
+
+function updateProgressChart() {
+  const selEx = document.getElementById('prog-ex-select');
+  const selMetric = document.getElementById('prog-metric-select');
+  const selPeriod = document.getElementById('prog-period-select');
+  if (!selEx || !selMetric || !selPeriod) return;
+
+  const exName = selEx.value;
+  const metric = selMetric.value;
+  const period = selPeriod.value;
+  const metricLabels = { maxWeight: 'Max Weight (lbs)', volume: 'Total Volume (lbs×reps)', reps: 'Total Reps', avgWeight: 'Avg Weight (lbs)' };
+
+  const points = _getProgressData(exName, metric, period);
+  const canvas = document.getElementById('progress-chart');
+  if (!canvas) return;
+
+  if (_progressChart) { _progressChart.destroy(); _progressChart = null; }
+
+  if (!points.length) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('progress-summary').innerHTML = '<div style="color:var(--text-muted);font-size:0.88rem">No data for this exercise/metric/period.</div>';
+    return;
+  }
+
+  _progressChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: points.map(p => p.date),
+      datasets: [{
+        label: metricLabels[metric],
+        data: points.map(p => p.value),
+        borderColor: '#29B6F6',
+        backgroundColor: 'rgba(41,182,246,0.12)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#29B6F6'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, font: { size: 11 } } },
+        y: { ticks: { font: { size: 11 } }, beginAtZero: false }
+      }
+    }
+  });
+
+  // Summary stats
+  const vals = points.map(p => p.value);
+  const best = Math.max(...vals);
+  const avg = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+  const last = vals[vals.length - 1];
+  let trend = '&rarr; steady';
+  if (vals.length >= 6) {
+    const first3 = vals.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
+    const last3 = vals.slice(-3).reduce((a, b) => a + b, 0) / 3;
+    if (last3 > first3 * 1.02) trend = '&#8593; improving';
+    else if (last3 < first3 * 0.98) trend = '&#8595; declining';
+  }
+  document.getElementById('progress-summary').innerHTML = `
+    <div style="flex:1;min-width:80px;background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--sky)">${best}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted)">&#127942; Best</div>
+    </div>
+    <div style="flex:1;min-width:80px;background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--sky)">${avg}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted)">&#128202; Avg</div>
+    </div>
+    <div style="flex:1;min-width:80px;background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--sky)">${last}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted)">&#128197; Last</div>
+    </div>
+    <div style="flex:1;min-width:80px;background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--sky)">${trend}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted)">&#128200; Trend</div>
+    </div>`;
+}
+
+function updateAllExercisesChart() {
+  const workouts = state.workouts || [];
+  const volByEx = {};
+  workouts.forEach(w => {
+    (w.exercises || []).forEach(ex => {
+      const vol = (ex.sets || []).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0);
+      volByEx[ex.name] = (volByEx[ex.name] || 0) + vol;
+    });
+  });
+  const sorted = Object.entries(volByEx).sort((a, b) => b[1] - a[1]);
+  const labels = sorted.map(e => e[0]);
+  const values = sorted.map(e => Math.round(e[1]));
+
+  const canvas = document.getElementById('progress-all-chart');
+  if (!canvas) return;
+  if (_progressChart) { _progressChart.destroy(); _progressChart = null; }
+
+  if (!labels.length) return;
+
+  _progressChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Total Volume (lbs×reps)',
+        data: values,
+        backgroundColor: 'rgba(41,182,246,0.7)',
+        borderColor: '#29B6F6',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 10 } }, beginAtZero: true },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
 }
 
 // ---- Exercise Picker Modal ----
