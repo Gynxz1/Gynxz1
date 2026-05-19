@@ -775,6 +775,23 @@ select.filter-select-input {
 
 /* Muscle group filter chips in picker */
 .mg-filter-chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+
+/* Print button */
+.print-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.print-btn:hover { background: var(--bg); border-color: var(--blue); color: var(--blue); }
 </style>
 </head>
 <body>
@@ -792,7 +809,7 @@ select.filter-select-input {
 </div>
 
 <div id="header">
-  <h1>&#127968; Home Hub <span style="font-size:0.6rem;font-weight:400;opacity:0.55;letter-spacing:0.05em">v1.8</span></h1>
+  <h1>&#127968; Home Hub <span style="font-size:0.6rem;font-weight:400;opacity:0.55;letter-spacing:0.05em">v1.9</span></h1>
   <div id="sync-indicator" style="font-size:0.72rem;letter-spacing:0.02em;min-width:60px;text-align:center"></div>
   <div class="user-toggle">
     <button class="user-btn" id="btn-p" onclick="setUser('P')">P</button>
@@ -1498,11 +1515,12 @@ function renderMealPlan() {
         <h2 style="margin:0;font-size:1.1rem;font-weight:800">&#128197; Weekly Meal Plan</h2>
         <div style="font-size:0.8rem;color:var(--text-muted)">${days[0].toLocaleDateString([],{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString([],{month:'short',day:'numeric'})}</div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <button class="btn-secondary" onclick="mealPlanWeekOffset--;render()" style="padding:6px 10px">&#8592; Prev</button>
         <button class="btn-secondary" onclick="mealPlanWeekOffset=0;render()" style="padding:6px 10px">Today</button>
         <button class="btn-secondary" onclick="mealPlanWeekOffset++;render()" style="padding:6px 10px">Next &#8594;</button>
         <button class="btn-primary" onclick="sendWeekToGrocery()" style="padding:6px 12px">&#128722; Send to Grocery</button>
+        <button class="print-btn" onclick="showPrintModal('meals')">&#128424; Print</button>
       </div>
     </div>
     <div class="meal-plan-scroll"><div class="meal-plan-grid">`;
@@ -1816,7 +1834,10 @@ function renderTodos() {
         <button class="filt-btn ${todoFilters.assignee==='Both'?'active':''}" onclick="setTodoFilter('assignee','Both')">Both</button>
       </div>
     </div>
-    <button class="add-btn" onclick="openAddTodo()">+ Add To-Do</button>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+      <button class="add-btn" style="margin-bottom:0" onclick="openAddTodo()">+ Add To-Do</button>
+      <button class="print-btn" onclick="showPrintModal('todos')">&#128424; Print</button>
+    </div>
     <div class="cards-grid">`;
   if (items.length === 0) {
     html += `<div class="empty-state"><div class="empty-icon">&#9989;</div><p>Nothing to do here!</p></div>`;
@@ -1964,10 +1985,11 @@ function renderGrocery() {
         <button class="filt-btn ${groceryFilters.owner==='all'?'active':''}" onclick="setGroceryFilter('owner','all')">All</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
       <button class="add-btn" style="margin:0" onclick="openAddGrocery()">+ Add Item</button>
       <button class="grocery-generate-btn" onclick="openGroceryList()">&#128203; Generate List</button>
       <button class="clear-purchased-btn" onclick="clearPurchased()">Clear Purchased</button>
+      <button class="print-btn" onclick="showPrintModal('grocery')">&#128424; Print</button>
     </div>
     <div class="cards-grid">`;
   if (items.length === 0) {
@@ -3870,7 +3892,10 @@ function renderWorkoutHistory() {
   let html = `
     <div class="workout-subheader">
       <h2>&#128170; Workout History</h2>
-      <button class="workout-view-link" onclick="workoutView='log';_wkEditingId=null;_wkExercises=[];_wkNotes='';_wkDate=todayDateStr();render()">&#8592; Log Workout</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="print-btn" onclick="showPrintModal('workout')">&#128424; Print</button>
+        <button class="workout-view-link" onclick="workoutView='log';_wkEditingId=null;_wkExercises=[];_wkNotes='';_wkDate=todayDateStr();render()">&#8592; Log Workout</button>
+      </div>
     </div>`;
 
   if (!workouts.length) {
@@ -4257,6 +4282,280 @@ function closeModal() {
 }
 function closeModalOnBackdrop(event) {
   if (event.target === event.currentTarget) closeModal();
+}
+
+// ========== PRINT ==========
+function showPrintModal(tab) {
+  const today = todayDateStr();
+  // Default from: 30 days ago for workout, start of current week for meals
+  const d30 = new Date(); d30.setDate(d30.getDate() - 30);
+  const defaultFrom30 = toDateKey(d30);
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const defaultFromWeek = toDateKey(weekStart);
+
+  const needsDates = tab === 'workout' || tab === 'meals';
+  const fromDefault = tab === 'workout' ? defaultFrom30 : defaultFromWeek;
+  const toDefault   = today;
+
+  const tabLabel = { workout:'Workout History', meals:'Meal Plan', todos:'To-Do List', grocery:'Grocery List' }[tab] || tab;
+
+  const dateFields = needsDates ? `
+    <div class="form-row">
+      <div class="form-group">
+        <label>From Date</label>
+        <input type="date" id="print-from" value="${fromDefault}">
+      </div>
+      <div class="form-group">
+        <label>To Date</label>
+        <input type="date" id="print-to" value="${toDefault}">
+      </div>
+    </div>` : '';
+
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+          <h2>&#128424; Print ${escapeHtml(tabLabel)}</h2>
+          <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+          ${dateFields}
+          <div class="form-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="doPrint('${tab}', ${needsDates ? "document.getElementById('print-from').value, document.getElementById('print-to').value" : "null, null"})">&#128424; Print</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function doPrint(tab, from, to) {
+  closeModal();
+  const now = new Date();
+  const printedAt = now.toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' }) + ' at ' + now.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  const BASE_STYLES = `
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Georgia, 'Times New Roman', serif; color: #111; background: #fff; padding: 24px 32px; font-size: 13px; line-height: 1.5; }
+      h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+      h2 { font-size: 1.1rem; font-weight: 700; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 3px; }
+      h3 { font-size: 0.95rem; font-weight: 700; margin: 12px 0 4px; }
+      .subtitle { font-size: 0.85rem; color: #555; margin-bottom: 20px; }
+      .badge { display: inline-block; border-radius: 20px; padding: 1px 8px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; border: 1px solid #999; margin-right: 4px; }
+      .badge-p { background: #E1F5FE; color: #0277BD; border-color: #0277BD; }
+      .badge-m { background: #FFFDE7; color: #F57F17; border-color: #F57F17; }
+      .badge-shared { background: #DCEEFB; color: #1565C0; border-color: #1565C0; }
+      .badge-high { background: #FEE2E2; color: #991B1B; border-color: #991B1B; }
+      .badge-medium { background: #FEF3C7; color: #92400E; border-color: #92400E; }
+      .badge-low { background: #F1F5F9; color: #475569; border-color: #475569; }
+      .workout-entry { margin-bottom: 28px; page-break-inside: avoid; }
+      .exercise-name { font-weight: 700; margin: 8px 0 2px; }
+      .set-line { margin-left: 16px; font-size: 0.88rem; color: #333; }
+      .notes-line { font-style: italic; color: #555; margin-top: 6px; font-size: 0.85rem; }
+      .writing-space { border-bottom: 1px dashed #bbb; margin: 6px 0; height: 28px; }
+      .meal-day { margin-bottom: 20px; page-break-inside: avoid; }
+      .meal-slot-row { display: flex; gap: 10px; align-items: baseline; margin: 4px 0; padding: 4px 0; border-bottom: 1px solid #ddd; }
+      .meal-slot-label { font-weight: 700; min-width: 80px; font-size: 0.85rem; color: #555; }
+      .meal-slot-name { flex: 1; }
+      .meal-slot-cal { color: #555; font-size: 0.82rem; }
+      .meal-slot-blank { flex: 1; border-bottom: 1px solid #999; min-height: 18px; }
+      .todo-item { display: flex; gap: 10px; align-items: baseline; margin: 6px 0; padding: 5px 0; border-bottom: 1px solid #eee; }
+      .checkbox { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #555; flex-shrink: 0; margin-top: 2px; }
+      .todo-title { flex: 1; font-size: 0.92rem; }
+      .todo-done { text-decoration: line-through; color: #888; }
+      .todo-meta { font-size: 0.75rem; color: #777; }
+      .section-header { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #777; margin: 16px 0 6px; border-bottom: 2px solid #ccc; padding-bottom: 3px; }
+      .groc-item { display: flex; gap: 10px; align-items: baseline; margin: 5px 0; padding: 4px 0; border-bottom: 1px solid #eee; }
+      .groc-item.bought { color: #999; text-decoration: line-through; }
+      .groc-name { flex: 1; font-size: 0.92rem; }
+      .groc-qty { font-size: 0.82rem; color: #666; }
+      .groc-notes { font-size: 0.78rem; color: #888; font-style: italic; }
+      .footer { margin-top: 32px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 0.72rem; color: #888; text-align: center; }
+      @media print { body { padding: 12px 18px; } }
+    </style>`;
+
+  let bodyHtml = '';
+
+  if (tab === 'workout') {
+    const fromD = from || '1900-01-01';
+    const toD   = to   || '9999-12-31';
+    const filtered = (state.workouts || [])
+      .filter(w => w.date >= fromD && w.date <= toD)
+      .slice().sort((a, b) => b.date.localeCompare(a.date));
+
+    const fromLabel = from ? new Date(from + 'T12:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '';
+    const toLabel   = to   ? new Date(to   + 'T12:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '';
+
+    bodyHtml = `<h1>&#128170; Workout History</h1>
+      <div class="subtitle">${fromLabel} &ndash; ${toLabel} &bull; ${filtered.length} workout${filtered.length !== 1 ? 's' : ''}</div>`;
+
+    if (!filtered.length) {
+      bodyHtml += `<p style="color:#888;font-style:italic">No workouts found in this date range.</p>`;
+    } else {
+      filtered.forEach(w => {
+        const ownerBadgeHtml = w.owner === 'P' ? '<span class="badge badge-p">P</span>'
+          : w.owner === 'M' ? '<span class="badge badge-m">M</span>'
+          : '<span class="badge badge-shared">Shared</span>';
+        const dateLabel = new Date(w.date + 'T12:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+        bodyHtml += `<div class="workout-entry"><h2>${dateLabel} ${ownerBadgeHtml}</h2>`;
+        (w.exercises || []).forEach(ex => {
+          bodyHtml += `<div class="exercise-name">${ex.name} <span style="font-weight:400;font-size:0.82rem;color:#555">(${ex.muscleGroup})</span></div>`;
+          if (ex.type === 'cardio') {
+            const mins = Math.floor((ex.duration || 0) / 60);
+            const secs = ((ex.duration || 0) % 60).toString().padStart(2, '0');
+            bodyHtml += `<div class="set-line">Duration: ${mins}:${secs}</div>`;
+          } else if (ex.type === 'timed') {
+            (ex.sets || []).forEach((s, i) => {
+              const sm = Math.floor((s.duration || 0) / 60);
+              const ss = ((s.duration || 0) % 60).toString().padStart(2, '0');
+              bodyHtml += `<div class="set-line">Set ${i + 1}: ${sm}:${ss}</div>`;
+            });
+          } else {
+            (ex.sets || []).forEach((s, i) => {
+              bodyHtml += `<div class="set-line">Set ${i + 1}: ${s.weight || '?'} ${s.unit || 'lbs'} &times; ${s.reps || '?'} reps</div>`;
+            });
+          }
+          if (ex.timeSpent) bodyHtml += `<div class="set-line" style="color:#777">Time: ${ex.timeSpent}</div>`;
+        });
+        if (w.notes) bodyHtml += `<div class="notes-line">Notes: ${w.notes}</div>`;
+        bodyHtml += `<div class="writing-space"></div><div class="writing-space"></div></div>`;
+      });
+    }
+
+  } else if (tab === 'meals') {
+    const fromD = from || '1900-01-01';
+    const toD   = to   || '9999-12-31';
+    const SLOT_LBLS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
+    const SLOT_KEYS = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+    const fromLabel = from ? new Date(from + 'T12:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '';
+    const toLabel   = to   ? new Date(to   + 'T12:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : '';
+
+    bodyHtml = `<h1>&#128197; Meal Plan</h1><div class="subtitle">${fromLabel} &ndash; ${toLabel}</div>`;
+
+    const allKeys = Object.keys(state.mealPlan || {}).filter(k => k >= fromD && k <= toD).sort();
+    if (!allKeys.length) {
+      bodyHtml += `<p style="color:#888;font-style:italic">No meals planned in this date range.</p>`;
+    } else {
+      allKeys.forEach(key => {
+        const meals = state.mealPlan[key] || {};
+        const dateLabel = new Date(key + 'T12:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+        bodyHtml += `<div class="meal-day"><h2>${dateLabel}</h2>`;
+        SLOT_KEYS.forEach(slot => {
+          const meal = meals[slot];
+          bodyHtml += `<div class="meal-slot-row">
+            <span class="meal-slot-label">${SLOT_LBLS[slot]}</span>`;
+          if (meal) {
+            bodyHtml += `<span class="meal-slot-name">${meal.name}</span>`;
+            if (meal.macros && meal.macros.calories) bodyHtml += `<span class="meal-slot-cal">${meal.macros.calories} kcal</span>`;
+          } else {
+            bodyHtml += `<span class="meal-slot-blank"></span>`;
+          }
+          bodyHtml += `</div>`;
+        });
+        bodyHtml += `</div>`;
+      });
+    }
+
+  } else if (tab === 'todos') {
+    const user = state.currentUser || 'P';
+    const todayLabel = new Date().toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' });
+    bodyHtml = `<h1>&#9989; To-Do List</h1><div class="subtitle">${todayLabel} &bull; ${user === 'P' ? 'P' : 'M'}'s view</div>`;
+
+    const allTodos = (state.todos || []).slice();
+    const active = allTodos.filter(t => !t.done);
+    const done   = allTodos.filter(t => t.done);
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    active.sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2));
+
+    const renderTodoItem = (t, strikethrough) => {
+      const priorityBadge = t.priority === 'high' ? '<span class="badge badge-high">High</span>'
+        : t.priority === 'medium' ? '<span class="badge badge-medium">Med</span>'
+        : '<span class="badge badge-low">Low</span>';
+      const duePart = t.dueDate ? ` &bull; Due: ${new Date(t.dueDate).toLocaleDateString(undefined, { month:'short', day:'numeric' })}` : '';
+      const assigneePart = t.assignee && t.assignee !== user ? ` &bull; ${t.assignee}` : '';
+      return `<div class="todo-item">
+        <span class="checkbox"></span>
+        <div style="flex:1">
+          <span class="todo-title ${strikethrough ? 'todo-done' : ''}">${t.title}</span>
+          <span class="todo-meta"> ${priorityBadge}${duePart}${assigneePart}</span>
+        </div>
+      </div>`;
+    };
+
+    if (active.length) {
+      bodyHtml += `<div class="section-header">Active (${active.length})</div>`;
+      active.forEach(t => { bodyHtml += renderTodoItem(t, false); });
+    }
+    if (done.length) {
+      bodyHtml += `<div class="section-header" style="margin-top:20px">Completed (${done.length})</div>`;
+      done.forEach(t => { bodyHtml += renderTodoItem(t, true); });
+    }
+    if (!active.length && !done.length) {
+      bodyHtml += `<p style="color:#888;font-style:italic">No to-do items found.</p>`;
+    }
+
+  } else if (tab === 'grocery') {
+    const todayLabel = new Date().toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' });
+    bodyHtml = `<h1>&#128722; Grocery List</h1><div class="subtitle">${todayLabel}</div>`;
+
+    const items = state.groceryItems || [];
+    const unchecked = items.filter(g => !g.purchased);
+    const checked   = items.filter(g => g.purchased);
+
+    const renderGrocItem = (g, bought) => {
+      const qty = g.quantity ? `${g.quantity}${g.unit ? ' ' + g.unit : ''}` : '';
+      const notesPart = g.notes ? ` &mdash; <em>${g.notes}</em>` : '';
+      return `<div class="groc-item ${bought ? 'bought' : ''}">
+        <span class="checkbox" style="${bought ? 'opacity:0.4' : ''}"></span>
+        <span class="groc-name">${g.name}</span>
+        ${qty ? `<span class="groc-qty">${qty}</span>` : ''}
+        ${notesPart ? `<span class="groc-notes">${notesPart}</span>` : ''}
+      </div>`;
+    };
+
+    // Group unchecked by store
+    const storeMap = {};
+    unchecked.forEach(g => {
+      const s = g.store || '';
+      if (!storeMap[s]) storeMap[s] = [];
+      storeMap[s].push(g);
+    });
+    const stores = Object.keys(storeMap).sort();
+
+    if (!items.length) {
+      bodyHtml += `<p style="color:#888;font-style:italic">Grocery list is empty.</p>`;
+    } else {
+      if (stores.length > 1 || (stores.length === 1 && stores[0])) {
+        stores.forEach(store => {
+          if (store) bodyHtml += `<div class="section-header">&#127978; ${store}</div>`;
+          else bodyHtml += `<div class="section-header">Other</div>`;
+          storeMap[store].forEach(g => { bodyHtml += renderGrocItem(g, false); });
+        });
+      } else {
+        if (unchecked.length) {
+          bodyHtml += `<div class="section-header">Items to Get (${unchecked.length})</div>`;
+          unchecked.forEach(g => { bodyHtml += renderGrocItem(g, false); });
+        }
+      }
+      if (checked.length) {
+        bodyHtml += `<div class="section-header" style="margin-top:20px;color:#aaa">Already Purchased (${checked.length})</div>`;
+        checked.forEach(g => { bodyHtml += renderGrocItem(g, true); });
+      }
+    }
+  }
+
+  const fullHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Home Hub Print</title>${BASE_STYLES}</head><body>
+    ${bodyHtml}
+    <div class="footer">Printed from Home Hub &bull; ${printedAt}</div>
+  </body></html>`;
+
+  const pw = window.open('', '_blank', 'width=800,height=900');
+  if (!pw) { alert('Please allow pop-ups to print.'); return; }
+  pw.document.write(fullHtml);
+  pw.document.close();
+  pw.focus();
+  pw.print();
 }
 
 // ========== INIT ==========
