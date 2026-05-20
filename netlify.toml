@@ -1,5 +1,5 @@
 [[redirects]]
-  from = "/"
+  from = "/home-hub"
   to = "/home-hub.html"
   status = 200
 

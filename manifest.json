@@ -1,11 +1,11 @@
 {
-  "name": "Home Hub",
-  "short_name": "Home Hub",
-  "description": "Household management for two — reminders, to-dos, grocery, recipes, and meal planning.",
-  "start_url": "/home-hub.html",
+  "name": "CrimPlays",
+  "short_name": "CrimPlays",
+  "description": "Adaptive music teaching app — learn piano with mini-games, ear training, and a personalized skill path.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D1B2A",
-  "theme_color": "#0D1B2A",
+  "background_color": "#0A0A1A",
+  "theme_color": "#0A0A1A",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
