@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CrimPlays – Learn Music</title>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0A0A1A">
+<meta name="theme-color" content="#0D0407">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CrimPlays">
@@ -15,25 +15,25 @@
    DESIGN TOKENS
 ============================================================ */
 :root {
-  --bg:         #0A0A1A;
-  --bg-card:    #12122A;
-  --bg-card2:   #1A1A38;
-  --purple:     #6366F1;
-  --purple-lt:  #818CF8;
-  --purple-glow:rgba(99,102,241,0.25);
-  --gold:       #F59E0B;
-  --gold-lt:    #FCD34D;
-  --emerald:    #10B981;
-  --rose:       #F43F5E;
-  --sky:        #38BDF8;
-  --text:       #E2E8F0;
-  --text-muted: #94A3B8;
-  --text-dim:   #64748B;
-  --border:     rgba(255,255,255,0.07);
-  --radius:     14px;
-  --radius-lg:  20px;
-  --shadow:     0 4px 24px rgba(0,0,0,0.5);
-  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+  --bg:          #0D0407;
+  --bg-card:     #180709;
+  --bg-card2:    #220C10;
+  --crimson:     #C41E3A;
+  --crimson-lt:  #FF6B6B;
+  --crimson-glow:rgba(196,30,58,0.25);
+  --gold:        #F59E0B;
+  --gold-lt:     #FCD34D;
+  --emerald:     #10B981;
+  --rose:        #F43F5E;
+  --sky:         #38BDF8;
+  --text:        #F0E0E2;
+  --text-muted:  #B08890;
+  --text-dim:    #7A5560;
+  --border:      rgba(255,255,255,0.08);
+  --radius:      14px;
+  --radius-lg:   20px;
+  --shadow:      0 4px 24px rgba(0,0,0,0.6);
+  --transition:  0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
 /* ============================================================
@@ -80,14 +80,14 @@ svg{display:block}
 }
 #loading .logo-big{
   font-size:52px;font-weight:900;
-  background:linear-gradient(135deg,var(--purple-lt),var(--gold));
+  background:linear-gradient(135deg,#FF6B6B,var(--gold));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   letter-spacing:-2px;
 }
 .spinner{
   width:40px;height:40px;
   border:3px solid var(--border);
-  border-top-color:var(--purple);
+  border-top-color:var(--crimson);
   border-radius:50%;
   animation:spin 0.8s linear infinite;
 }
@@ -118,7 +118,7 @@ svg{display:block}
   transition:color var(--transition);
   font-size:10px;font-weight:600;letter-spacing:0.5px;
 }
-.nav-btn.active{color:var(--purple-lt)}
+.nav-btn.active{color:var(--crimson-lt)}
 .nav-btn svg{width:22px;height:22px;transition:transform var(--transition)}
 .nav-btn.active svg{transform:scale(1.1)}
 
@@ -126,7 +126,7 @@ svg{display:block}
    TYPOGRAPHY HELPERS
 ============================================================ */
 .gradient-text{
-  background:linear-gradient(135deg,var(--purple-lt),var(--gold));
+  background:linear-gradient(135deg,#FF6B6B,var(--gold));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
 .section-label{
@@ -145,7 +145,7 @@ svg{display:block}
   padding:16px;
 }
 .card-glow{
-  box-shadow:0 0 0 1px rgba(99,102,241,0.3),var(--shadow);
+  box-shadow:0 0 0 1px rgba(196,30,58,0.3),var(--shadow);
 }
 
 /* ============================================================
@@ -159,12 +159,12 @@ svg{display:block}
   cursor:pointer;
 }
 .btn-primary{
-  background:linear-gradient(135deg,var(--purple),#4F46E5);
+  background:linear-gradient(135deg,#E8192C,#8B0000);
   color:#fff;
-  box-shadow:0 4px 20px rgba(99,102,241,0.4);
+  box-shadow:0 4px 20px rgba(196,30,58,0.4);
 }
-.btn-primary:active{transform:scale(0.96);box-shadow:0 2px 10px rgba(99,102,241,0.3)}
-.btn-primary:hover{box-shadow:0 6px 28px rgba(99,102,241,0.5)}
+.btn-primary:active{transform:scale(0.96);box-shadow:0 2px 10px rgba(196,30,58,0.3)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(196,30,58,0.5)}
 .btn-secondary{
   background:var(--bg-card2);
   color:var(--text);
@@ -194,7 +194,7 @@ svg{display:block}
 }
 .progress-fill{
   height:100%;border-radius:99px;
-  background:linear-gradient(90deg,var(--purple),var(--purple-lt));
+  background:linear-gradient(90deg,var(--crimson),var(--crimson-lt));
   transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 .progress-fill.gold{background:linear-gradient(90deg,var(--gold),var(--gold-lt))}
@@ -205,10 +205,10 @@ svg{display:block}
 ============================================================ */
 .xp-pill{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(99,102,241,0.15);
-  border:1px solid rgba(99,102,241,0.3);
+  background:rgba(196,30,58,0.15);
+  border:1px solid rgba(196,30,58,0.3);
   border-radius:99px;padding:4px 12px;
-  font-size:12px;font-weight:700;color:var(--purple-lt);
+  font-size:12px;font-weight:700;color:var(--crimson-lt);
 }
 .streak-pill{
   display:inline-flex;align-items:center;gap:5px;
@@ -237,8 +237,8 @@ svg{display:block}
   background:var(--bg-card2);
   transition:background var(--transition);
 }
-.onboard-dot.done{background:var(--purple)}
-.onboard-dot.active{background:var(--purple-lt)}
+.onboard-dot.done{background:var(--crimson)}
+.onboard-dot.active{background:var(--crimson-lt)}
 
 .onboard-title{
   font-size:28px;font-weight:800;line-height:1.2;
@@ -260,9 +260,9 @@ svg{display:block}
 }
 .choice-card:active{transform:scale(0.97)}
 .choice-card.selected{
-  border-color:var(--purple);
-  background:rgba(99,102,241,0.1);
-  box-shadow:0 0 0 1px rgba(99,102,241,0.2);
+  border-color:var(--crimson);
+  background:rgba(196,30,58,0.1);
+  box-shadow:0 0 0 1px rgba(196,30,58,0.2);
 }
 .choice-icon{font-size:28px;width:44px;text-align:center;flex-shrink:0}
 .choice-label{font-weight:700;font-size:15px;margin-bottom:2px}
@@ -276,7 +276,7 @@ svg{display:block}
   transition:border-color var(--transition);
   margin-bottom:28px;
 }
-.onboard-name-input:focus{border-color:var(--purple)}
+.onboard-name-input:focus{border-color:var(--crimson)}
 .onboard-name-input::placeholder{color:var(--text-dim)}
 .onboard-footer{margin-top:auto;padding-top:20px}
 
@@ -296,19 +296,19 @@ svg{display:block}
   margin:0 16px 20px;
   padding:20px;
   border-radius:var(--radius-lg);
-  background:linear-gradient(135deg,#1a1a3e,#2d1f5e);
-  border:1px solid rgba(99,102,241,0.2);
+  background:linear-gradient(135deg,#1e0509,#3d0a14);
+  border:1px solid rgba(196,30,58,0.2);
   position:relative;overflow:hidden;
 }
 .home-hero::before{
   content:'';position:absolute;
   top:-40px;right:-40px;width:160px;height:160px;
   border-radius:50%;
-  background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);
+  background:radial-gradient(circle,rgba(196,30,58,0.15),transparent 70%);
 }
 .hero-label{
   font-size:11px;font-weight:700;letter-spacing:1.5px;
-  color:var(--purple-lt);text-transform:uppercase;margin-bottom:8px;
+  color:var(--crimson-lt);text-transform:uppercase;margin-bottom:8px;
 }
 .hero-title{
   font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px;
@@ -319,7 +319,7 @@ svg{display:block}
   margin-bottom:8px;
 }
 .hero-xp-label{font-size:12px;color:var(--text-muted);font-weight:600}
-.hero-xp-val{font-size:12px;color:var(--purple-lt);font-weight:700}
+.hero-xp-val{font-size:12px;color:var(--crimson-lt);font-weight:700}
 
 .home-section{padding:0 16px;margin-bottom:24px}
 .games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -334,7 +334,7 @@ svg{display:block}
   content:'';position:absolute;
   top:0;left:0;right:0;height:3px;
 }
-.game-card.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple-lt))}
+.game-card.purple::before{background:linear-gradient(90deg,var(--crimson),var(--crimson-lt))}
 .game-card.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold-lt))}
 .game-card.sky::before{background:linear-gradient(90deg,var(--sky),#7DD3FC)}
 .game-card.emerald::before{background:linear-gradient(90deg,var(--emerald),#34D399)}
@@ -395,7 +395,7 @@ svg{display:block}
   transition:all var(--transition);
   text-align:center;
 }
-.skill-node-card.unlocked{border-color:rgba(99,102,241,0.4)}
+.skill-node-card.unlocked{border-color:rgba(196,30,58,0.4)}
 .skill-node-card.mastered{
   border-color:var(--gold);
   background:rgba(245,158,11,0.08);
@@ -407,7 +407,7 @@ svg{display:block}
 .skill-node-name{font-size:12px;font-weight:700;margin-bottom:6px;line-height:1.2}
 .skill-node-mastery{font-size:11px;color:var(--text-muted);margin-bottom:6px}
 .skill-node-bar{height:4px;border-radius:99px;background:var(--bg-card2);overflow:hidden}
-.skill-node-fill{height:100%;border-radius:99px;background:var(--purple)}
+.skill-node-fill{height:100%;border-radius:99px;background:var(--crimson)}
 .skill-node-fill.gold{background:var(--gold)}
 .skill-node-lock{
   font-size:18px;position:absolute;
@@ -443,7 +443,7 @@ svg{display:block}
 }
 .q-dot.done{background:var(--emerald)}
 .q-dot.wrong{background:var(--rose)}
-.q-dot.active{background:var(--purple)}
+.q-dot.active{background:var(--crimson)}
 
 .note-game-body{
   flex:1;display:flex;flex-direction:column;
@@ -547,11 +547,11 @@ svg{display:block}
 .score-chip-label{font-size:11px;color:var(--text-muted);font-weight:600}
 
 .note-theory-tip{
-  width:100%;background:rgba(99,102,241,0.08);
-  border:1px solid rgba(99,102,241,0.2);
+  width:100%;background:rgba(196,30,58,0.08);
+  border:1px solid rgba(196,30,58,0.2);
   border-radius:var(--radius);padding:12px 14px;
 }
-.theory-tip-label{font-size:10px;font-weight:700;color:var(--purple-lt);
+.theory-tip-label{font-size:10px;font-weight:700;color:var(--crimson-lt);
   letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
 .theory-tip-text{font-size:13px;color:var(--text-muted);line-height:1.5}
 
@@ -587,9 +587,9 @@ svg{display:block}
 .rhythm-beat.beat-half{width:22px}
 .rhythm-beat.beat-2{width:88px}
 .rhythm-beat.active{
-  background:var(--purple);
-  border-color:var(--purple-lt);
-  box-shadow:0 0 20px rgba(99,102,241,0.5);
+  background:var(--crimson);
+  border-color:var(--crimson-lt);
+  box-shadow:0 0 20px rgba(196,30,58,0.5);
 }
 .rhythm-beat.tapped{
   background:var(--emerald);
@@ -603,7 +603,7 @@ svg{display:block}
 .rhythm-phase-label{
   text-align:center;
   font-size:28px;font-weight:900;
-  color:var(--purple-lt);margin-bottom:4px;
+  color:var(--crimson-lt);margin-bottom:4px;
 }
 .rhythm-phase-sub{
   text-align:center;font-size:14px;color:var(--text-muted);
@@ -611,8 +611,8 @@ svg{display:block}
 
 .rhythm-tap-btn{
   width:160px;height:160px;border-radius:50%;
-  background:linear-gradient(135deg,var(--purple),#4F46E5);
-  box-shadow:0 8px 40px rgba(99,102,241,0.5),0 0 0 0 rgba(99,102,241,0.4);
+  background:linear-gradient(135deg,#E8192C,#8B0000);
+  box-shadow:0 8px 40px rgba(196,30,58,0.5),0 0 0 0 rgba(196,30,58,0.4);
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   cursor:pointer;
@@ -621,16 +621,16 @@ svg{display:block}
 }
 .rhythm-tap-btn:active{
   transform:scale(0.92);
-  box-shadow:0 4px 20px rgba(99,102,241,0.4),0 0 0 0 rgba(99,102,241,0.3);
+  box-shadow:0 4px 20px rgba(196,30,58,0.4),0 0 0 0 rgba(196,30,58,0.3);
 }
 .rhythm-tap-btn.pulsing{
   animation:tapPulse 0.5s ease-out;
 }
 .rhythm-tap-label{font-size:13px;font-weight:700;color:rgba(255,255,255,0.9)}
 @keyframes tapPulse{
-  0%{box-shadow:0 8px 40px rgba(99,102,241,0.5),0 0 0 0 rgba(99,102,241,0.4)}
-  70%{box-shadow:0 8px 40px rgba(99,102,241,0.3),0 0 0 40px rgba(99,102,241,0)}
-  100%{box-shadow:0 8px 40px rgba(99,102,241,0.5),0 0 0 0 rgba(99,102,241,0)}
+  0%{box-shadow:0 8px 40px rgba(196,30,58,0.5),0 0 0 0 rgba(196,30,58,0.4)}
+  70%{box-shadow:0 8px 40px rgba(196,30,58,0.3),0 0 0 40px rgba(196,30,58,0)}
+  100%{box-shadow:0 8px 40px rgba(196,30,58,0.5),0 0 0 0 rgba(196,30,58,0)}
 }
 
 .metronome-row{
@@ -642,7 +642,7 @@ svg{display:block}
   transition:all 0.08s;
 }
 .metro-dot.beat{
-  background:var(--purple-lt);
+  background:var(--crimson-lt);
   box-shadow:0 0 10px rgba(129,140,248,0.6);
 }
 
@@ -757,7 +757,7 @@ svg{display:block}
 ============================================================ */
 @media(min-width:480px){
   #app{box-shadow:0 0 60px rgba(0,0,0,0.8)}
-  body{background:#050510}
+  body{background:#080203}
 }
 </style>
 </head>
@@ -1014,7 +1014,7 @@ function addXP(amount){
   saveState();
   showToast(`+${amount} XP ⭐`, 'var(--gold)');
   if(S.progress.userLevel > oldLevel){
-    setTimeout(()=>showToast(`Level Up! Now Level ${S.progress.userLevel} 🎉`,'var(--purple-lt)'),700);
+    setTimeout(()=>showToast(`Level Up! Now Level ${S.progress.userLevel} 🎉`,'var(--crimson-lt)'),700);
     maybeAwardBadge('level_3', S.progress.userLevel >= 3);
   }
 }
@@ -1077,7 +1077,7 @@ function showToast(msg, color='var(--text)'){
    CONFETTI
 ============================================================ */
 function spawnConfetti(){
-  const colors = ['#6366F1','#F59E0B','#10B981','#38BDF8','#F43F5E','#A78BFA'];
+  const colors = ['#C41E3A','#F59E0B','#10B981','#38BDF8','#F43F5E','#A78BFA'];
   for(let i=0;i<40;i++){
     const el = document.createElement('div');
     el.className = 'confetti-piece';
@@ -1295,7 +1295,7 @@ function onboardFinish(){
   saveState();
   renderView();
   spawnConfetti();
-  setTimeout(()=>showToast(`Welcome, ${S.user.name}! Let\'s make music 🎵`,'var(--purple-lt)'), 300);
+  setTimeout(()=>showToast(`Welcome, ${S.user.name}! Let\'s make music 🎵`,'var(--crimson-lt)'), 300);
 }
 
 /* ============================================================
@@ -1478,7 +1478,7 @@ function renderSkillTree(container){
     const y2 = b.y + 55;
     const unlocked = S.progress.skills[to]?.unlocked;
     svgEl += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-      stroke="${unlocked?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.07)'}"
+      stroke="${unlocked?'rgba(196,30,58,0.4)':'rgba(255,255,255,0.07)'}"
       stroke-width="2" stroke-dasharray="${unlocked?'':'6,4'}"/>`;
   });
   svgEl += '</svg>';
@@ -1509,7 +1509,7 @@ function renderSkillTree(container){
       card.onclick = ()=>{
         if(n.id==='rhythm') startRhythmTap();
         else if(n.id==='noteReading') startNoteFlash();
-        else showToast(`${n.name} lessons coming soon! Focus on Rhythm & Notes first.`,'var(--purple-lt)');
+        else showToast(`${n.name} lessons coming soon! Focus on Rhythm & Notes first.`,'var(--crimson-lt)');
       };
     }
     nodeContainer.appendChild(card);
@@ -1522,7 +1522,7 @@ function renderSkillTree(container){
   legend.style.cssText = 'display:flex;gap:16px;justify-content:center;margin-top:24px;flex-wrap:wrap;';
   legend.innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
-      <div style="width:12px;height:12px;border-radius:3px;background:rgba(99,102,241,0.3);border:2px solid var(--purple)"></div> Unlocked
+      <div style="width:12px;height:12px;border-radius:3px;background:rgba(196,30,58,0.3);border:2px solid var(--crimson)"></div> Unlocked
     </div>
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
       <div style="width:12px;height:12px;border-radius:3px;background:rgba(245,158,11,0.2);border:2px solid var(--gold)"></div> Mastered
@@ -1550,7 +1550,7 @@ function renderPlay(container){
   `;
 
   const games = [
-    { icon:'🎵', name:'Note Flash Cards', desc:'Read notes on the treble clef staff. Identify the piano key. Train note recognition until it\'s automatic.', xp:'Up to 130 XP', color:'var(--purple)', fn:'startNoteFlash()' },
+    { icon:'🎵', name:'Note Flash Cards', desc:'Read notes on the treble clef staff. Identify the piano key. Train note recognition until it\'s automatic.', xp:'Up to 130 XP', color:'var(--crimson)', fn:'startNoteFlash()' },
     { icon:'🥁', name:'Rhythm Tap',        desc:'Listen to a rhythm pattern, then tap it back in time. Builds the most fundamental skill in music.', xp:'Up to 130 XP', color:'var(--gold)', fn:'startRhythmTap()' },
     { icon:'👂', name:'Ear Training',       desc:'Identify intervals and chord qualities by ear. This is what separates good musicians from great ones.', xp:'Coming soon', color:'var(--sky)', fn:'', locked:true },
     { icon:'🎸', name:'Chord Quiz',         desc:'Major, minor, or dominant? Learn to identify chord qualities and build your harmonic vocabulary.', xp:'Coming soon', color:'var(--emerald)', fn:'', locked:true },
@@ -1594,7 +1594,7 @@ function renderProfile(container){
   wrap.innerHTML = `
     <div style="text-align:center;margin-bottom:28px">
       <div style="width:80px;height:80px;border-radius:50%;
-           background:linear-gradient(135deg,var(--purple),var(--gold));
+           background:linear-gradient(135deg,var(--crimson),var(--gold));
            display:flex;align-items:center;justify-content:center;
            font-size:36px;margin:0 auto 12px;">
         🎹
@@ -1613,7 +1613,7 @@ function renderProfile(container){
         <div style="font-size:12px;color:var(--text-muted);font-weight:600">Day Streak</div>
       </div>
       <div class="card" style="text-align:center">
-        <div style="font-size:28px;font-weight:900;color:var(--purple-lt)">${p.gamesPlayed.noteFlash + p.gamesPlayed.rhythm}</div>
+        <div style="font-size:28px;font-weight:900;color:var(--crimson-lt)">${p.gamesPlayed.noteFlash + p.gamesPlayed.rhythm}</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:600">Games Played</div>
       </div>
       <div class="card" style="text-align:center">
@@ -1631,7 +1631,7 @@ function renderProfile(container){
           <div style="margin-bottom:12px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
               <span style="font-size:13px;font-weight:700">${icons[k]} ${names[k]}</span>
-              <span style="font-size:12px;color:${v.unlocked?'var(--purple-lt)':'var(--text-dim)'};font-weight:600">
+              <span style="font-size:12px;color:${v.unlocked?'var(--crimson-lt)':'var(--text-dim)'};font-weight:600">
                 ${v.unlocked ? v.mastery+'%' : '🔒 Locked'}
               </span>
             </div>
@@ -1831,19 +1831,19 @@ function buildStaffSVG(noteData){
      dominant-baseline="auto">&#x1D11E;</text>`;
 
   // Note ellipse
-  svg += `<ellipse cx="${noteX}" cy="${noteY}" rx="11" ry="8.5" fill="var(--purple-lt)"/>`;
+  svg += `<ellipse cx="${noteX}" cy="${noteY}" rx="11" ry="8.5" fill="var(--crimson-lt)"/>`;
 
   // Note stem (up if below/at middle line B4 y=84, down if above)
   if(noteY >= 84){
-    svg += `<line x1="${noteX+10}" y1="${noteY}" x2="${noteX+10}" y2="${noteY-40}" stroke="var(--purple-lt)" stroke-width="2"/>`;
+    svg += `<line x1="${noteX+10}" y1="${noteY}" x2="${noteX+10}" y2="${noteY-40}" stroke="var(--crimson-lt)" stroke-width="2"/>`;
   } else {
-    svg += `<line x1="${noteX-10}" y1="${noteY}" x2="${noteX-10}" y2="${noteY+40}" stroke="var(--purple-lt)" stroke-width="2"/>`;
+    svg += `<line x1="${noteX-10}" y1="${noteY}" x2="${noteX-10}" y2="${noteY+40}" stroke="var(--crimson-lt)" stroke-width="2"/>`;
   }
 
   // Play note indicator
-  svg += `<circle cx="56" cy="134" r="10" fill="rgba(99,102,241,0.2)" stroke="var(--purple)" stroke-width="1.5"
+  svg += `<circle cx="56" cy="134" r="10" fill="rgba(196,30,58,0.2)" stroke="var(--crimson)" stroke-width="1.5"
      onclick="playNote('${noteData.note}')" style="cursor:pointer"/>
-     <text x="56" y="138" font-size="11" fill="var(--purple-lt)" text-anchor="middle">♪</text>`;
+     <text x="56" y="138" font-size="11" fill="var(--crimson-lt)" text-anchor="middle">♪</text>`;
 
   svg += '</svg>';
   return svg;
@@ -2223,8 +2223,8 @@ function endTapPhase(){
   if(scoreDiv){
     scoreDiv.style.display = 'block';
     scoreDiv.innerHTML = `
-      <div class="accuracy-badge" style="background:${score>=85?'rgba(16,185,129,0.1)':score>=60?'rgba(99,102,241,0.1)':'rgba(244,63,94,0.08)'}">
-        <div class="accuracy-score" style="color:${score>=85?'var(--emerald)':score>=60?'var(--purple-lt)':'var(--rose)'}">${score}%</div>
+      <div class="accuracy-badge" style="background:${score>=85?'rgba(16,185,129,0.1)':score>=60?'rgba(196,30,58,0.1)':'rgba(244,63,94,0.08)'}">
+        <div class="accuracy-score" style="color:${score>=85?'var(--emerald)':score>=60?'var(--crimson-lt)':'var(--rose)'}">${score}%</div>
         <div class="accuracy-label">Timing Accuracy</div>
       </div>
       <button class="btn btn-primary btn-lg" style="margin-top:12px" onclick="finishRhythmTap()">
@@ -2347,7 +2347,7 @@ function renderResult(container){
         <div class="result-stat-label">${g.type==='noteFlash'?'Missed':'Missed'}</div>
       </div>
       <div class="result-stat">
-        <div class="result-stat-val" style="color:var(--purple-lt)">${g.accuracy}%</div>
+        <div class="result-stat-val" style="color:var(--crimson-lt)">${g.accuracy}%</div>
         <div class="result-stat-label">Accuracy</div>
       </div>
     </div>
@@ -2377,7 +2377,7 @@ function buildResultTip(g){
   }
   if(g.accuracy >= 60){
     return `<div class="card" style="width:100%;text-align:left">
-      <div style="font-size:12px;font-weight:700;color:var(--purple-lt);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Teacher's Note 📝</div>
+      <div style="font-size:12px;font-weight:700;color:var(--crimson-lt);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Teacher's Note 📝</div>
       <div style="font-size:14px;color:var(--text-muted);line-height:1.5">
         Good progress! ${g.type==='noteFlash'?'Remember: count the lines from the bottom (E-G-B-D-F). With repetition, you\'ll stop counting and just know.':'Nice rhythm! Focus on the downbeat (beat 1) and let the others fall into place.'}
       </div>
@@ -2402,39 +2402,35 @@ function confirmExitGame(){
 /* ============================================================
    INIT
 ============================================================ */
-async function init(){
-  // Init audio (requires Tone.js to be loaded)
-  try {
-    await initAudio();
-  } catch(e) {
-    console.warn('Audio init failed:', e);
-  }
+function init(){
+  // Show app immediately — don't block on audio
+  document.getElementById('loading').style.display = 'none';
 
-  // Check if onboarding is complete
   if(S.user.name && S.onboardingStep >= ONBOARD_STEPS.length){
     S.view = 'home';
   } else {
     S.view = 'onboarding';
   }
-
-  // Hide loading, show app
-  document.getElementById('loading').style.display = 'none';
-
   renderView();
 }
 
-// Wait for Tone.js to be available
-function waitForTone(){
-  if(typeof Tone !== 'undefined'){
-    init();
-  } else {
-    setTimeout(waitForTone, 100);
+// Init audio on first user gesture (required by all modern browsers anyway)
+let audioInitStarted = false;
+async function ensureAudio(){
+  if(audioReady || audioInitStarted) return;
+  audioInitStarted = true;
+  try {
+    await initAudio();
+  } catch(e) {
+    console.warn('Audio init:', e);
+    audioInitStarted = false;
   }
 }
 
-window.addEventListener('load', ()=>{
-  setTimeout(waitForTone, 200);
-});
+document.addEventListener('pointerdown', ensureAudio, { once: true });
+document.addEventListener('keydown',    ensureAudio, { once: true });
+
+window.addEventListener('DOMContentLoaded', ()=> setTimeout(init, 50));
 
 // Handle keyboard tap for rhythm game
 document.addEventListener('keydown', (e)=>{
