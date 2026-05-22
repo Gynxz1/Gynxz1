@@ -482,6 +482,96 @@ select.filter-select-input {
   cursor: pointer;
 }
 .clear-purchased-btn:hover { background: #FEE2E2; }
+.uncheck-all-btn {
+  background: #fff;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.uncheck-all-btn:hover { background: var(--bg); color: var(--text); }
+
+/* Grocery favorite star */
+.gli-fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.4;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.gli-fav-btn:hover { opacity: 1; transform: scale(1.2); }
+.gli-fav-btn.is-fav { opacity: 1; }
+
+/* Quick-add bar */
+.groc-quick-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+  align-items: center;
+}
+.groc-quick-add input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+}
+.groc-quick-add input::placeholder { color: var(--text-muted); }
+.groc-quick-add-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.groc-quick-add-btn:hover { background: var(--blue-hover); }
+
+/* Store nav pills in fullscreen */
+.store-nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 9;
+}
+.store-nav-pill {
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  color: #fff;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.store-nav-pill:hover { background: rgba(255,255,255,0.35); }
+.store-nav-pill.active { background: #fff; color: var(--navy); }
 
 /* Fullscreen overlay */
 .fullscreen-overlay {
@@ -1998,6 +2088,16 @@ function allStores() { return [...DEFAULT_STORES, ...state.customStores]; }
 function renderGrocery() {
   let items = state.groceryItems;
   if (groceryFilters.owner !== 'all') items = items.filter(g => matchesOwnerFilter(g, groceryFilters.owner));
+  // Sort: favorites first, then unpurchased, then purchased
+  items = [...items].sort((a, b) => {
+    if (a.favorite && !b.favorite) return -1;
+    if (!a.favorite && b.favorite) return 1;
+    if (!a.purchased && b.purchased) return -1;
+    if (a.purchased && !b.purchased) return 1;
+    return 0;
+  });
+  const hasPurchased = items.some(g => g.purchased);
+  const hasAny = items.length > 0;
   let html = `
     <div class="filters-bar">
       <span class="filter-label">Owner:</span>
@@ -2007,17 +2107,35 @@ function renderGrocery() {
         <button class="filt-btn ${groceryFilters.owner==='all'?'active':''}" onclick="setGroceryFilter('owner','all')">All</button>
       </div>
     </div>
+    <div class="groc-quick-add">
+      <span style="font-size:1.1rem">&#43;</span>
+      <input type="text" id="groc-quick-input" placeholder="Quick add item (press Enter)..." onkeydown="if(event.key==='Enter')quickAddGrocery()">
+      <button class="groc-quick-add-btn" onclick="quickAddGrocery()">Add</button>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <button class="add-btn" style="margin:0" onclick="openAddGrocery()">+ Add Item</button>
-      <button class="grocery-generate-btn" onclick="openGroceryList()">&#128203; Generate List</button>
-      <button class="clear-purchased-btn" onclick="clearPurchased()">Clear Purchased</button>
+      <button class="add-btn" style="margin:0" onclick="openAddGrocery()">&#43; Full Add</button>
+      <button class="grocery-generate-btn" onclick="openGroceryList()">&#128203; Shopping Mode</button>
+      ${hasPurchased ? `<button class="uncheck-all-btn" onclick="uncheckAllGrocery()">&#8635; Uncheck All</button>` : ''}
+      ${hasPurchased ? `<button class="clear-purchased-btn" onclick="clearPurchased()">&#10005; Clear Purchased</button>` : ''}
       <button class="print-btn" onclick="showPrintModal('grocery')">&#128424; Print</button>
     </div>
     <div class="cards-grid">`;
   if (items.length === 0) {
     html += `<div class="empty-state"><div class="empty-icon">&#128722;</div><p>Grocery list is empty!</p></div>`;
   } else {
-    items.forEach(g => { html += renderGroceryCard(g); });
+    // Show favorites section header if any
+    const favs = items.filter(g => g.favorite);
+    const nonFavs = items.filter(g => !g.favorite);
+    if (favs.length > 0) {
+      html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#F59E0B;margin:4px 0 8px;display:flex;align-items:center;gap:6px"><span>&#9733;</span> Favorites</div>`;
+      favs.forEach(g => { html += renderGroceryCard(g); });
+      if (nonFavs.length > 0) {
+        html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin:12px 0 8px">All Items</div>`;
+        nonFavs.forEach(g => { html += renderGroceryCard(g); });
+      }
+    } else {
+      items.forEach(g => { html += renderGroceryCard(g); });
+    }
   }
   html += `</div>`;
   return html;
@@ -2032,8 +2150,10 @@ function renderGroceryCard(g) {
           ${ownerBadge(g.owner)}
           ${g.quantity ? `<span>${escapeHtml(String(g.quantity))} ${escapeHtml(g.unit||'')}</span>` : ''}
           ${g.store ? `<span>&#127978; ${escapeHtml(g.store)}</span>` : ''}
+          ${g.favorite ? `<span style="color:#F59E0B;font-weight:700;font-size:0.75rem">&#9733; Favorite</span>` : ''}
         </div>
       </div>
+      <button class="gli-fav-btn ${g.favorite?'is-fav':''}" onclick="toggleGroceryFavorite('${g.id}')" title="${g.favorite?'Remove from favorites':'Add to favorites'}">${g.favorite?'&#9733;':'&#9734;'}</button>
     </div>
     <div class="card-actions">
       <button class="card-btn" onclick="openEditGrocery('${g.id}')">Edit</button>
@@ -2068,11 +2188,41 @@ function deleteGrocery(id) {
   saveState(); render(); deleteRemoteItem(id);
 }
 function clearPurchased() {
-  if (!confirm('Remove all purchased items?')) return;
-  const toDelete = state.groceryItems.filter(x => x.purchased).map(x => x.id);
-  state.groceryItems = state.groceryItems.filter(x => !x.purchased);
+  if (!confirm('Remove all purchased (non-favorite) items?')) return;
+  const toDelete = state.groceryItems.filter(x => x.purchased && !x.favorite).map(x => x.id);
+  state.groceryItems = state.groceryItems.filter(x => !x.purchased || x.favorite);
+  // Reset purchased flag on favorites that were purchased
+  state.groceryItems.forEach(x => { if (x.favorite && x.purchased) x.purchased = false; });
   saveState(); render();
   toDelete.forEach(id => deleteRemoteItem(id));
+}
+function uncheckAllGrocery() {
+  state.groceryItems.forEach(g => { g.purchased = false; });
+  saveState(); render();
+}
+function toggleGroceryFavorite(id) {
+  const g = state.groceryItems.find(x => x.id === id);
+  if (g) { g.favorite = !g.favorite; saveState(); render(); pushItem(g, 'grocery'); }
+}
+function quickAddGrocery() {
+  const inp = document.getElementById('groc-quick-input');
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) return;
+  const obj = {
+    id: uid(), name,
+    quantity: '', unit: '', store: '',
+    owner: state.currentUser || 'P',
+    purchased: false, favorite: false,
+    createdAt: Date.now()
+  };
+  state.groceryItems.push(obj);
+  saveState(); render(); pushItem(obj, 'grocery');
+  // Re-focus after render
+  setTimeout(() => {
+    const el = document.getElementById('groc-quick-input');
+    if (el) el.focus();
+  }, 50);
 }
 function openAddGrocery() { editingId = null; showGroceryModal(null); }
 function openEditGrocery(id) { editingId = id; showGroceryModal(state.groceryItems.find(x => x.id === id)); }
@@ -2182,14 +2332,27 @@ function openGroceryList() {
   });
   const storeOrder = Object.keys(storeMap).filter(s => s !== '__unassigned__').sort();
   if (storeMap['__unassigned__']) storeOrder.push('__unassigned__');
+
+  // Store nav pills (only show if more than 1 store)
+  let storePillsHtml = '';
+  if (storeOrder.length > 1) {
+    storePillsHtml = `<div class="store-nav-pills">
+      <span style="font-size:0.75rem;font-weight:700;opacity:0.8;align-self:center">Jump to:</span>
+      ${storeOrder.map((s,i) => {
+        const label = s === '__unassigned__' ? '📦 Other' : '🏪 ' + escapeHtml(s);
+        return `<button class="store-nav-pill ${i===0?'active':''}" onclick="scrollToStore('store-section-${i}',this)">${label}</button>`;
+      }).join('')}
+    </div>`;
+  }
+
   let sectionsHtml = '';
-  storeOrder.forEach(store => {
+  storeOrder.forEach((store, i) => {
     const sItems = storeMap[store];
-    sectionsHtml += `<div class="store-section"><h3>${store === '__unassigned__' ? 'Unassigned' : escapeHtml(store)}</h3>`;
+    sectionsHtml += `<div class="store-section" id="store-section-${i}"><h3>${store === '__unassigned__' ? '📦 Other / Unassigned' : '🏪 ' + escapeHtml(store)}</h3>`;
     sItems.forEach(g => {
       sectionsHtml += `<div class="grocery-list-item ${g.purchased?'purchased':''}" data-grocery-id="${g.id}">
         <div class="gli-check ${g.purchased?'checked':''}" onclick="toggleGroceryFromList('${g.id}')">${g.purchased?'&#10003;':''}</div>
-        <div class="gli-name">${escapeHtml(g.name)}</div>
+        <div class="gli-name">${g.favorite ? '<span style="color:#F59E0B;margin-right:4px">&#9733;</span>' : ''}${escapeHtml(g.name)}</div>
         <div class="gli-qty">${g.quantity ? escapeHtml(String(g.quantity)) + (g.unit ? ' ' + escapeHtml(g.unit) : '') : ''}</div>
         ${ownerBadge(g.owner)}
       </div>`;
@@ -2200,18 +2363,38 @@ function openGroceryList() {
   document.getElementById('modal-container').innerHTML = `
     <div class="fullscreen-overlay" id="grocery-overlay">
       <div class="fullscreen-header">
-        <h2>&#128722; Grocery List</h2>
+        <h2>&#128722; Shopping Mode</h2>
         <div style="display:flex;gap:8px">
+          <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem" onclick="uncheckAllGroceryInList()">&#8635; Uncheck All</button>
           <button class="print-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="window.print()">&#128424;&#65039; Print</button>
           <button class="close-fl-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="closeGroceryList()">&#x2715; Close</button>
         </div>
       </div>
+      ${storePillsHtml}
       <div class="fullscreen-body">${sectionsHtml}</div>
     </div>`;
 }
 function closeGroceryList() {
   document.getElementById('modal-container').innerHTML = '';
   render();
+}
+function scrollToStore(sectionId, btn) {
+  const el = document.getElementById(sectionId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.store-nav-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+function uncheckAllGroceryInList() {
+  state.groceryItems.forEach(g => { g.purchased = false; });
+  saveState();
+  // Update UI in-place without closing
+  document.querySelectorAll('.grocery-list-item').forEach(el => {
+    el.classList.remove('purchased');
+    const chk = el.querySelector('.gli-check');
+    if (chk) { chk.classList.remove('checked'); chk.textContent = ''; }
+    const nm = el.querySelector('.gli-name');
+    if (nm) nm.style.textDecoration = '';
+  });
 }
 
 // ========== RECIPES ==========
@@ -4839,7 +5022,10 @@ function doPrint(tab, from, to) {
   pw.document.write(fullHtml);
   pw.document.close();
   pw.focus();
-  pw.print();
+  // Wait for resources to load before printing
+  pw.onload = function() { pw.print(); };
+  // Fallback for browsers that may not fire onload on document.write
+  setTimeout(() => { try { if (pw && !pw.closed) pw.print(); } catch(e) {} }, 800);
 }
 
 // ========== INIT ==========
