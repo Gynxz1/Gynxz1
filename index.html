@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Home Hub</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0D1B2A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Home Hub">
-<link rel="apple-touch-icon" href="/icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -1002,6 +1002,15 @@ select.filter-select-input {
         <div class="color-row"><label>Tab highlight</label><input type="color" id="tc-highlight" value="#FFD600"></div>
         <div class="color-row"><label>Text</label><input type="color" id="tc-text" value="#0D1B2A"></div>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">&#128190; Backup &amp; Restore</div>
+      <div style="font-size:0.79rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5">Export saves <strong>everything</strong> &mdash; groceries, todos, workouts, recipes, meal plans, settings, API keys, and theme &mdash; to a single JSON file. Import restores it all instantly on any device.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <button type="button" class="btn-primary" onclick="exportData()" style="flex:1;min-width:120px">&#11015; Export Data</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('import-file-input').click()" style="flex:1;min-width:120px">&#11014; Import Data</button>
+      </div>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+      <div id="import-export-msg" style="font-size:0.8rem;min-height:18px;margin-top:4px"></div>
       <div class="form-actions">
         <button class="btn-secondary" id="settings-cancel-btn">Cancel</button>
         <button class="btn-primary" id="settings-save-btn">Save</button>
@@ -4722,6 +4731,93 @@ function saveSettings() {
   render();
   startSyncPolling(); // restart with new config
 }
+function exportData() {
+  // Build full export including all state + settings
+  const exportObj = {
+    _version: 1,
+    _exported: new Date().toISOString(),
+    _app: 'HomeHub',
+    // Data
+    reminders: state.reminders,
+    todos: state.todos,
+    groceryItems: state.groceryItems,
+    customStores: state.customStores,
+    recipes: state.recipes,
+    customIngredients: state.customIngredients,
+    mealPlan: state.mealPlan,
+    workouts: state.workouts,
+    workoutTemplates: state.workoutTemplates,
+    customExercises: state.customExercises,
+    dailyClasses: state.dailyClasses,
+    // Settings
+    geminiApiKey: state.geminiApiKey,
+    geminiModel: state.geminiModel,
+    usdaApiKey: state.usdaApiKey,
+    supabaseUrl: state.supabaseUrl,
+    supabaseKey: state.supabaseKey,
+    dailyGoals: state.dailyGoals,
+    theme: state.theme,
+    currentUser: state.currentUser
+  };
+  const json = JSON.stringify(exportObj, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'homehub-backup-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const msg = document.getElementById('import-export-msg');
+  if (msg) { msg.style.color = '#16A34A'; msg.textContent = '✓ Export downloaded successfully!'; setTimeout(() => msg.textContent = '', 4000); }
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if (obj._app !== 'HomeHub') throw new Error('Not a HomeHub backup file.');
+      // Restore data arrays
+      if (Array.isArray(obj.reminders))         state.reminders         = obj.reminders;
+      if (Array.isArray(obj.todos))              state.todos             = obj.todos;
+      if (Array.isArray(obj.groceryItems))       state.groceryItems      = obj.groceryItems;
+      if (Array.isArray(obj.customStores))       state.customStores      = obj.customStores;
+      if (Array.isArray(obj.recipes))            state.recipes           = obj.recipes;
+      if (Array.isArray(obj.customIngredients))  state.customIngredients = obj.customIngredients;
+      if (Array.isArray(obj.workouts))           state.workouts          = obj.workouts;
+      if (Array.isArray(obj.workoutTemplates))   state.workoutTemplates  = obj.workoutTemplates;
+      if (Array.isArray(obj.customExercises))    state.customExercises   = obj.customExercises;
+      if (obj.mealPlan && typeof obj.mealPlan === 'object')    state.mealPlan    = obj.mealPlan;
+      if (obj.dailyClasses && typeof obj.dailyClasses === 'object') state.dailyClasses = obj.dailyClasses;
+      // Restore settings
+      if (obj.geminiApiKey)  state.geminiApiKey  = obj.geminiApiKey;
+      if (obj.geminiModel)   state.geminiModel   = obj.geminiModel;
+      if (obj.usdaApiKey)    state.usdaApiKey    = obj.usdaApiKey;
+      if (obj.supabaseUrl)   state.supabaseUrl   = obj.supabaseUrl;
+      if (obj.supabaseKey)   state.supabaseKey   = obj.supabaseKey;
+      if (obj.dailyGoals)    state.dailyGoals    = obj.dailyGoals;
+      if (obj.theme)         state.theme         = obj.theme;
+      if (obj.currentUser)   state.currentUser   = obj.currentUser;
+      saveLocalState();
+      if (obj.theme) applyTheme(obj.theme);
+      render();
+      const msg = document.getElementById('import-export-msg');
+      if (msg) { msg.style.color = '#16A34A'; msg.textContent = '✓ Import successful! All data restored.'; setTimeout(() => msg.textContent = '', 5000); }
+    } catch(err) {
+      const msg = document.getElementById('import-export-msg');
+      if (msg) { msg.style.color = '#DC2626'; msg.textContent = '✗ Import failed: ' + err.message; }
+    }
+    // Reset file input so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function toggleApiKeyVisibility() {
   const inp = document.getElementById('api-key-input');
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
@@ -5030,7 +5126,7 @@ function doPrint(tab, from, to) {
 
 // ========== INIT ==========
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 loadState();
 applyThemeFromState();

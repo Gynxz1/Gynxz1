@@ -1,8 +1,8 @@
 {
   "name": "Home Hub",
-  "short_name": "Home Hub",
-  "description": "Household management for two — reminders, to-dos, grocery, recipes, and meal planning.",
-  "start_url": "/home-hub.html",
+  "short_name": "HomeHub",
+  "description": "Your personal household dashboard — todos, groceries, workouts, meal plans, and more.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0D1B2A",
   "theme_color": "#0D1B2A",
