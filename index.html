@@ -1462,18 +1462,24 @@ let builderSearchQuery = '';
 let builderSelectedIngId = null;
 let ingDbFilters = { search: '', flags: {} };
 
+// Hardcoded credentials — always win regardless of localStorage
+const HARDCODED_KEYS = {
+  geminiApiKey: 'AIzaSyC0YScT-KcJjAKV5iiz9Sq4pxGpkBE-Tzo',
+  usdaApiKey:   '5AHk0t7fkfS7sZoX0VxfD1DKQP1EI5f14h7BtRPh',
+  supabaseUrl:  'https://ewxkpwtutontdoqwvrhm.supabase.co',
+  supabaseKey:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3eGtwd3R1dG9udGRvcXd2cmhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5ODQ4ODMsImV4cCI6MjA5NDU2MDg4M30.MhtZ6-4AwHZ_nV1a3B35997HBMYIwPrDtOiYAGZ9aw0'
+};
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
-      // Don't overwrite default API keys with empty strings from old localStorage
-      ['geminiApiKey','usdaApiKey','supabaseUrl','supabaseKey'].forEach(k => {
-        if (!saved[k]) delete saved[k];
-      });
       state = { ...state, ...saved };
     }
   } catch(e) {}
+  // Always apply hardcoded keys — overrides anything in localStorage
+  Object.assign(state, HARDCODED_KEYS);
 }
 function saveLocalState() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
