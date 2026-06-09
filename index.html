@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Home Hub</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0D1B2A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Home Hub">
-<link rel="apple-touch-icon" href="/icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -482,6 +482,96 @@ select.filter-select-input {
   cursor: pointer;
 }
 .clear-purchased-btn:hover { background: #FEE2E2; }
+.uncheck-all-btn {
+  background: #fff;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.uncheck-all-btn:hover { background: var(--bg); color: var(--text); }
+
+/* Grocery favorite star */
+.gli-fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.4;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.gli-fav-btn:hover { opacity: 1; transform: scale(1.2); }
+.gli-fav-btn.is-fav { opacity: 1; }
+
+/* Quick-add bar */
+.groc-quick-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+  align-items: center;
+}
+.groc-quick-add input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+}
+.groc-quick-add input::placeholder { color: var(--text-muted); }
+.groc-quick-add-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.groc-quick-add-btn:hover { background: var(--blue-hover); }
+
+/* Store nav pills in fullscreen */
+.store-nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 9;
+}
+.store-nav-pill {
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  color: #fff;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.store-nav-pill:hover { background: rgba(255,255,255,0.35); }
+.store-nav-pill.active { background: #fff; color: var(--navy); }
 
 /* Fullscreen overlay */
 .fullscreen-overlay {
@@ -912,6 +1002,15 @@ select.filter-select-input {
         <div class="color-row"><label>Tab highlight</label><input type="color" id="tc-highlight" value="#FFD600"></div>
         <div class="color-row"><label>Text</label><input type="color" id="tc-text" value="#0D1B2A"></div>
       </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">&#128190; Backup &amp; Restore</div>
+      <div style="font-size:0.79rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5">Export saves <strong>everything</strong> &mdash; groceries, todos, workouts, recipes, meal plans, settings, API keys, and theme &mdash; to a single JSON file. Import restores it all instantly on any device.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <button type="button" class="btn-primary" onclick="exportData()" style="flex:1;min-width:120px">&#11015; Export Data</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('import-file-input').click()" style="flex:1;min-width:120px">&#11014; Import Data</button>
+      </div>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+      <div id="import-export-msg" style="font-size:0.8rem;min-height:18px;margin-top:4px"></div>
       <div class="form-actions">
         <button class="btn-secondary" id="settings-cancel-btn">Cancel</button>
         <button class="btn-primary" id="settings-save-btn">Save</button>
@@ -933,17 +1032,17 @@ window.onerror = function(msg, src, line, col, err) {
 const STORE_KEY = 'homeHub_v1';
 let state = {
   currentUser: null,
-  geminiApiKey: '',
+  geminiApiKey: 'AIzaSyC0YScT-KcJjAKV5iiz9Sq4pxGpkBE-Tzo',
   geminiModel: 'gemini-2.0-flash',
-  supabaseUrl: '',
-  supabaseKey: '',
+  supabaseUrl: 'https://ewxkpwtutontdoqwvrhm.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3eGtwd3R1dG9udGRvcXd2cmhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5ODQ4ODMsImV4cCI6MjA5NDU2MDg4M30.MhtZ6-4AwHZ_nV1a3B35997HBMYIwPrDtOiYAGZ9aw0',
   reminders: [],
   todos: [],
   groceryItems: [],
   customStores: [],
   recipes: [],
   customIngredients: [],
-  usdaApiKey: '',
+  usdaApiKey: '5AHk0t7fkfS7sZoX0VxfD1DKQP1EI5f14h7BtRPh',
   mealPlan: {},
   dailyGoals: { calories: 0, protein: 0, netCarbs: 0, fat: 0, fiber: 0 },
   workouts: [],
@@ -1177,6 +1276,12 @@ function renderSyncIndicator() {
 
 async function syncFromRemote() {
   if (!isSyncEnabled()) return;
+  // Don't pull-overwrite while we still have unsynced local changes —
+  // push them first so they aren't lost.
+  if (loadOutbox().length > 0) {
+    await flushOutbox();
+    if (loadOutbox().length > 0) return; // still offline; keep local data
+  }
   setSyncStatus('syncing');
   try {
     const resp = await fetch(state.supabaseUrl + '/rest/v1/hh_items?select=id,type,data&deleted=eq.false', {
@@ -1203,34 +1308,106 @@ async function syncFromRemote() {
   }
 }
 
+// ---- Offline outbox queue ----
+// Any push/delete that fails (offline, network error) is stored here and
+// retried automatically when connection returns.
+const OUTBOX_KEY = 'homehub_outbox_v1';
+
+function loadOutbox() {
+  try { return JSON.parse(localStorage.getItem(OUTBOX_KEY)) || []; }
+  catch(e) { return []; }
+}
+function saveOutbox(q) {
+  try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(q)); } catch(e) {}
+  updateOutboxIndicator();
+}
+function queueOp(op) {
+  const q = loadOutbox();
+  // De-dupe: if an op for the same id already queued, replace it with the newer one
+  const filtered = q.filter(x => x.id !== op.id);
+  filtered.push(op);
+  saveOutbox(filtered);
+}
+function updateOutboxIndicator() {
+  const n = loadOutbox().length;
+  const el = document.getElementById('sync-indicator');
+  if (!el || !isSyncEnabled()) return;
+  if (n > 0) {
+    el.textContent = '\u23F3 ' + n + ' pending';
+    el.style.color = '#FFD600';
+  }
+}
+
 async function pushItem(item, type) {
   if (!isSyncEnabled()) return;
+  const op = { kind: 'push', id: item.id, type, payload: { id: item.id, type, data: item, deleted: false }, ts: Date.now() };
+  const ok = await tryPush(op);
+  if (!ok) queueOp(op);
+}
+
+async function tryPush(op) {
   try {
-    await fetch(state.supabaseUrl + '/rest/v1/hh_items', {
+    const resp = await fetch(state.supabaseUrl + '/rest/v1/hh_items', {
       method: 'POST',
       headers: { ...syncHeaders(), 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({ id: item.id, type, data: item, deleted: false })
+      body: JSON.stringify(op.payload)
     });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     lastSyncTime = new Date();
     setSyncStatus('ok');
+    return true;
   } catch(e) {
     setSyncStatus('error');
-    console.warn('Push item failed:', e.message);
+    console.warn('Push queued (offline):', e.message);
+    return false;
   }
 }
 
 async function deleteRemoteItem(id) {
   if (!isSyncEnabled()) return;
+  const op = { kind: 'delete', id, ts: Date.now() };
+  const ok = await tryDelete(op);
+  if (!ok) queueOp(op);
+}
+
+async function tryDelete(op) {
   try {
-    await fetch(state.supabaseUrl + '/rest/v1/hh_items?id=eq.' + encodeURIComponent(id), {
+    const resp = await fetch(state.supabaseUrl + '/rest/v1/hh_items?id=eq.' + encodeURIComponent(op.id), {
       method: 'PATCH',
       headers: syncHeaders(),
       body: JSON.stringify({ deleted: true })
     });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     setSyncStatus('ok');
+    return true;
   } catch(e) {
     setSyncStatus('error');
-    console.warn('Remote delete failed:', e.message);
+    console.warn('Delete queued (offline):', e.message);
+    return false;
+  }
+}
+
+// Flush the outbox — called on reconnect, focus, and each poll cycle.
+let flushing = false;
+async function flushOutbox() {
+  if (!isSyncEnabled() || flushing) return;
+  let q = loadOutbox();
+  if (q.length === 0) return;
+  flushing = true;
+  setSyncStatus('syncing');
+  const remaining = [];
+  for (const op of q) {
+    let ok = false;
+    if (op.kind === 'push') ok = await tryPush(op);
+    else if (op.kind === 'delete') ok = await tryDelete(op);
+    if (!ok) remaining.push(op); // keep failures for next attempt
+  }
+  saveOutbox(remaining);
+  flushing = false;
+  if (remaining.length === 0) {
+    setSyncStatus('ok');
+    // After clearing the queue, pull latest so other-device changes merge in
+    syncFromRemote();
   }
 }
 
@@ -1256,11 +1433,19 @@ async function testSyncConnection(url, key) {
 function startSyncPolling() {
   if (syncPollInterval) clearInterval(syncPollInterval);
   if (!isSyncEnabled()) return;
+  flushOutbox();      // push anything queued offline first
   syncFromRemote();
   syncPollInterval = setInterval(() => {
-    if (!document.hidden) syncFromRemote();
+    if (!document.hidden) { flushOutbox(); syncFromRemote(); }
   }, 30000);
 }
+
+// Retry the queue the moment the device regains connectivity or focus.
+window.addEventListener('online', () => { flushOutbox(); });
+window.addEventListener('focus', () => { if (isSyncEnabled()) flushOutbox(); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && isSyncEnabled()) flushOutbox();
+});
 
 const DEFAULT_STORES = ['Walmart','Costco','Aldi','Meijer','Kroger','Amazon'];
 let activeTab = 'home';
@@ -1280,7 +1465,14 @@ let ingDbFilters = { search: '', flags: {} };
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) state = { ...state, ...JSON.parse(raw) };
+    if (raw) {
+      const saved = JSON.parse(raw);
+      // Don't overwrite default API keys with empty strings from old localStorage
+      ['geminiApiKey','usdaApiKey','supabaseUrl','supabaseKey'].forEach(k => {
+        if (!saved[k]) delete saved[k];
+      });
+      state = { ...state, ...saved };
+    }
   } catch(e) {}
 }
 function saveLocalState() {
@@ -1998,6 +2190,16 @@ function allStores() { return [...DEFAULT_STORES, ...state.customStores]; }
 function renderGrocery() {
   let items = state.groceryItems;
   if (groceryFilters.owner !== 'all') items = items.filter(g => matchesOwnerFilter(g, groceryFilters.owner));
+  // Sort: favorites first, then unpurchased, then purchased
+  items = [...items].sort((a, b) => {
+    if (a.favorite && !b.favorite) return -1;
+    if (!a.favorite && b.favorite) return 1;
+    if (!a.purchased && b.purchased) return -1;
+    if (a.purchased && !b.purchased) return 1;
+    return 0;
+  });
+  const hasPurchased = items.some(g => g.purchased);
+  const hasAny = items.length > 0;
   let html = `
     <div class="filters-bar">
       <span class="filter-label">Owner:</span>
@@ -2007,17 +2209,35 @@ function renderGrocery() {
         <button class="filt-btn ${groceryFilters.owner==='all'?'active':''}" onclick="setGroceryFilter('owner','all')">All</button>
       </div>
     </div>
+    <div class="groc-quick-add">
+      <span style="font-size:1.1rem">&#43;</span>
+      <input type="text" id="groc-quick-input" placeholder="Quick add item (press Enter)..." onkeydown="if(event.key==='Enter')quickAddGrocery()">
+      <button class="groc-quick-add-btn" onclick="quickAddGrocery()">Add</button>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <button class="add-btn" style="margin:0" onclick="openAddGrocery()">+ Add Item</button>
-      <button class="grocery-generate-btn" onclick="openGroceryList()">&#128203; Generate List</button>
-      <button class="clear-purchased-btn" onclick="clearPurchased()">Clear Purchased</button>
+      <button class="add-btn" style="margin:0" onclick="openAddGrocery()">&#43; Full Add</button>
+      <button class="grocery-generate-btn" onclick="openGroceryList()">&#128203; Shopping Mode</button>
+      ${hasPurchased ? `<button class="uncheck-all-btn" onclick="uncheckAllGrocery()">&#8635; Uncheck All</button>` : ''}
+      ${hasPurchased ? `<button class="clear-purchased-btn" onclick="clearPurchased()">&#10005; Clear Purchased</button>` : ''}
       <button class="print-btn" onclick="showPrintModal('grocery')">&#128424; Print</button>
     </div>
     <div class="cards-grid">`;
   if (items.length === 0) {
     html += `<div class="empty-state"><div class="empty-icon">&#128722;</div><p>Grocery list is empty!</p></div>`;
   } else {
-    items.forEach(g => { html += renderGroceryCard(g); });
+    // Show favorites section header if any
+    const favs = items.filter(g => g.favorite);
+    const nonFavs = items.filter(g => !g.favorite);
+    if (favs.length > 0) {
+      html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#F59E0B;margin:4px 0 8px;display:flex;align-items:center;gap:6px"><span>&#9733;</span> Favorites</div>`;
+      favs.forEach(g => { html += renderGroceryCard(g); });
+      if (nonFavs.length > 0) {
+        html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin:12px 0 8px">All Items</div>`;
+        nonFavs.forEach(g => { html += renderGroceryCard(g); });
+      }
+    } else {
+      items.forEach(g => { html += renderGroceryCard(g); });
+    }
   }
   html += `</div>`;
   return html;
@@ -2032,8 +2252,10 @@ function renderGroceryCard(g) {
           ${ownerBadge(g.owner)}
           ${g.quantity ? `<span>${escapeHtml(String(g.quantity))} ${escapeHtml(g.unit||'')}</span>` : ''}
           ${g.store ? `<span>&#127978; ${escapeHtml(g.store)}</span>` : ''}
+          ${g.favorite ? `<span style="color:#F59E0B;font-weight:700;font-size:0.75rem">&#9733; Favorite</span>` : ''}
         </div>
       </div>
+      <button class="gli-fav-btn ${g.favorite?'is-fav':''}" onclick="toggleGroceryFavorite('${g.id}')" title="${g.favorite?'Remove from favorites':'Add to favorites'}">${g.favorite?'&#9733;':'&#9734;'}</button>
     </div>
     <div class="card-actions">
       <button class="card-btn" onclick="openEditGrocery('${g.id}')">Edit</button>
@@ -2068,11 +2290,41 @@ function deleteGrocery(id) {
   saveState(); render(); deleteRemoteItem(id);
 }
 function clearPurchased() {
-  if (!confirm('Remove all purchased items?')) return;
-  const toDelete = state.groceryItems.filter(x => x.purchased).map(x => x.id);
-  state.groceryItems = state.groceryItems.filter(x => !x.purchased);
+  if (!confirm('Remove all purchased (non-favorite) items?')) return;
+  const toDelete = state.groceryItems.filter(x => x.purchased && !x.favorite).map(x => x.id);
+  state.groceryItems = state.groceryItems.filter(x => !x.purchased || x.favorite);
+  // Reset purchased flag on favorites that were purchased
+  state.groceryItems.forEach(x => { if (x.favorite && x.purchased) x.purchased = false; });
   saveState(); render();
   toDelete.forEach(id => deleteRemoteItem(id));
+}
+function uncheckAllGrocery() {
+  state.groceryItems.forEach(g => { g.purchased = false; });
+  saveState(); render();
+}
+function toggleGroceryFavorite(id) {
+  const g = state.groceryItems.find(x => x.id === id);
+  if (g) { g.favorite = !g.favorite; saveState(); render(); pushItem(g, 'grocery'); }
+}
+function quickAddGrocery() {
+  const inp = document.getElementById('groc-quick-input');
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) return;
+  const obj = {
+    id: uid(), name,
+    quantity: '', unit: '', store: '',
+    owner: state.currentUser || 'P',
+    purchased: false, favorite: false,
+    createdAt: Date.now()
+  };
+  state.groceryItems.push(obj);
+  saveState(); render(); pushItem(obj, 'grocery');
+  // Re-focus after render
+  setTimeout(() => {
+    const el = document.getElementById('groc-quick-input');
+    if (el) el.focus();
+  }, 50);
 }
 function openAddGrocery() { editingId = null; showGroceryModal(null); }
 function openEditGrocery(id) { editingId = id; showGroceryModal(state.groceryItems.find(x => x.id === id)); }
@@ -2182,14 +2434,27 @@ function openGroceryList() {
   });
   const storeOrder = Object.keys(storeMap).filter(s => s !== '__unassigned__').sort();
   if (storeMap['__unassigned__']) storeOrder.push('__unassigned__');
+
+  // Store nav pills (only show if more than 1 store)
+  let storePillsHtml = '';
+  if (storeOrder.length > 1) {
+    storePillsHtml = `<div class="store-nav-pills">
+      <span style="font-size:0.75rem;font-weight:700;opacity:0.8;align-self:center">Jump to:</span>
+      ${storeOrder.map((s,i) => {
+        const label = s === '__unassigned__' ? '📦 Other' : '🏪 ' + escapeHtml(s);
+        return `<button class="store-nav-pill ${i===0?'active':''}" onclick="scrollToStore('store-section-${i}',this)">${label}</button>`;
+      }).join('')}
+    </div>`;
+  }
+
   let sectionsHtml = '';
-  storeOrder.forEach(store => {
+  storeOrder.forEach((store, i) => {
     const sItems = storeMap[store];
-    sectionsHtml += `<div class="store-section"><h3>${store === '__unassigned__' ? 'Unassigned' : escapeHtml(store)}</h3>`;
+    sectionsHtml += `<div class="store-section" id="store-section-${i}"><h3>${store === '__unassigned__' ? '📦 Other / Unassigned' : '🏪 ' + escapeHtml(store)}</h3>`;
     sItems.forEach(g => {
       sectionsHtml += `<div class="grocery-list-item ${g.purchased?'purchased':''}" data-grocery-id="${g.id}">
         <div class="gli-check ${g.purchased?'checked':''}" onclick="toggleGroceryFromList('${g.id}')">${g.purchased?'&#10003;':''}</div>
-        <div class="gli-name">${escapeHtml(g.name)}</div>
+        <div class="gli-name">${g.favorite ? '<span style="color:#F59E0B;margin-right:4px">&#9733;</span>' : ''}${escapeHtml(g.name)}</div>
         <div class="gli-qty">${g.quantity ? escapeHtml(String(g.quantity)) + (g.unit ? ' ' + escapeHtml(g.unit) : '') : ''}</div>
         ${ownerBadge(g.owner)}
       </div>`;
@@ -2200,18 +2465,38 @@ function openGroceryList() {
   document.getElementById('modal-container').innerHTML = `
     <div class="fullscreen-overlay" id="grocery-overlay">
       <div class="fullscreen-header">
-        <h2>&#128722; Grocery List</h2>
+        <h2>&#128722; Shopping Mode</h2>
         <div style="display:flex;gap:8px">
+          <button style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:0.82rem" onclick="uncheckAllGroceryInList()">&#8635; Uncheck All</button>
           <button class="print-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="window.print()">&#128424;&#65039; Print</button>
           <button class="close-fl-btn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600" onclick="closeGroceryList()">&#x2715; Close</button>
         </div>
       </div>
+      ${storePillsHtml}
       <div class="fullscreen-body">${sectionsHtml}</div>
     </div>`;
 }
 function closeGroceryList() {
   document.getElementById('modal-container').innerHTML = '';
   render();
+}
+function scrollToStore(sectionId, btn) {
+  const el = document.getElementById(sectionId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.store-nav-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+function uncheckAllGroceryInList() {
+  state.groceryItems.forEach(g => { g.purchased = false; });
+  saveState();
+  // Update UI in-place without closing
+  document.querySelectorAll('.grocery-list-item').forEach(el => {
+    el.classList.remove('purchased');
+    const chk = el.querySelector('.gli-check');
+    if (chk) { chk.classList.remove('checked'); chk.textContent = ''; }
+    const nm = el.querySelector('.gli-name');
+    if (nm) nm.style.textDecoration = '';
+  });
 }
 
 // ========== RECIPES ==========
@@ -4539,6 +4824,93 @@ function saveSettings() {
   render();
   startSyncPolling(); // restart with new config
 }
+function exportData() {
+  // Build full export including all state + settings
+  const exportObj = {
+    _version: 1,
+    _exported: new Date().toISOString(),
+    _app: 'HomeHub',
+    // Data
+    reminders: state.reminders,
+    todos: state.todos,
+    groceryItems: state.groceryItems,
+    customStores: state.customStores,
+    recipes: state.recipes,
+    customIngredients: state.customIngredients,
+    mealPlan: state.mealPlan,
+    workouts: state.workouts,
+    workoutTemplates: state.workoutTemplates,
+    customExercises: state.customExercises,
+    dailyClasses: state.dailyClasses,
+    // Settings
+    geminiApiKey: state.geminiApiKey,
+    geminiModel: state.geminiModel,
+    usdaApiKey: state.usdaApiKey,
+    supabaseUrl: state.supabaseUrl,
+    supabaseKey: state.supabaseKey,
+    dailyGoals: state.dailyGoals,
+    theme: state.theme,
+    currentUser: state.currentUser
+  };
+  const json = JSON.stringify(exportObj, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'homehub-backup-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const msg = document.getElementById('import-export-msg');
+  if (msg) { msg.style.color = '#16A34A'; msg.textContent = '✓ Export downloaded successfully!'; setTimeout(() => msg.textContent = '', 4000); }
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if (obj._app !== 'HomeHub') throw new Error('Not a HomeHub backup file.');
+      // Restore data arrays
+      if (Array.isArray(obj.reminders))         state.reminders         = obj.reminders;
+      if (Array.isArray(obj.todos))              state.todos             = obj.todos;
+      if (Array.isArray(obj.groceryItems))       state.groceryItems      = obj.groceryItems;
+      if (Array.isArray(obj.customStores))       state.customStores      = obj.customStores;
+      if (Array.isArray(obj.recipes))            state.recipes           = obj.recipes;
+      if (Array.isArray(obj.customIngredients))  state.customIngredients = obj.customIngredients;
+      if (Array.isArray(obj.workouts))           state.workouts          = obj.workouts;
+      if (Array.isArray(obj.workoutTemplates))   state.workoutTemplates  = obj.workoutTemplates;
+      if (Array.isArray(obj.customExercises))    state.customExercises   = obj.customExercises;
+      if (obj.mealPlan && typeof obj.mealPlan === 'object')    state.mealPlan    = obj.mealPlan;
+      if (obj.dailyClasses && typeof obj.dailyClasses === 'object') state.dailyClasses = obj.dailyClasses;
+      // Restore settings
+      if (obj.geminiApiKey)  state.geminiApiKey  = obj.geminiApiKey;
+      if (obj.geminiModel)   state.geminiModel   = obj.geminiModel;
+      if (obj.usdaApiKey)    state.usdaApiKey    = obj.usdaApiKey;
+      if (obj.supabaseUrl)   state.supabaseUrl   = obj.supabaseUrl;
+      if (obj.supabaseKey)   state.supabaseKey   = obj.supabaseKey;
+      if (obj.dailyGoals)    state.dailyGoals    = obj.dailyGoals;
+      if (obj.theme)         state.theme         = obj.theme;
+      if (obj.currentUser)   state.currentUser   = obj.currentUser;
+      saveLocalState();
+      if (obj.theme) applyTheme(obj.theme);
+      render();
+      const msg = document.getElementById('import-export-msg');
+      if (msg) { msg.style.color = '#16A34A'; msg.textContent = '✓ Import successful! All data restored.'; setTimeout(() => msg.textContent = '', 5000); }
+    } catch(err) {
+      const msg = document.getElementById('import-export-msg');
+      if (msg) { msg.style.color = '#DC2626'; msg.textContent = '✗ Import failed: ' + err.message; }
+    }
+    // Reset file input so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function toggleApiKeyVisibility() {
   const inp = document.getElementById('api-key-input');
   if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
@@ -4839,12 +5211,15 @@ function doPrint(tab, from, to) {
   pw.document.write(fullHtml);
   pw.document.close();
   pw.focus();
-  pw.print();
+  // Wait for resources to load before printing
+  pw.onload = function() { pw.print(); };
+  // Fallback for browsers that may not fire onload on document.write
+  setTimeout(() => { try { if (pw && !pw.closed) pw.print(); } catch(e) {} }, 800);
 }
 
 // ========== INIT ==========
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 loadState();
 applyThemeFromState();
